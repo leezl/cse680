@@ -1,7 +1,15 @@
+/*
+Project 01, Graphics
+Edited: Liesl Wigand
+
+ */
+
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
+#include <fstream>
 #include <chrono>
+#include <typeinfo>//debugger
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -44,7 +52,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos);
 //--Resource management
 bool initialize();
 void cleanUp();
-int loadShader(char* filename, char* shadercode);
+char* loadShader(char* filename);
 
 //--Random time things
 float getDT();
@@ -264,13 +272,17 @@ bool initialize()
         "   gl_FragColor = vec4(color.rgb, 1.0);"
         "}";*/
     //Replace above block with shader loader.
-    /*
-    Should return at least const char *vs, *fs; both loaded from files
-    Default filenames: vertexShader.txt, fragmentShader.txt
-    */
-    const char *vs, *fs;
-    loadShader("vertexShader.txt", vs);
-    loadShader("fragmentShader.txt", fs);
+    
+    //Should return at least const char *vs, *fs; both loaded from files
+    //Default filenames: vertexShader.txt, fragmentShader.txt
+    
+    //const char *vs, *fs;
+    const char *vs = loadShader((char *)"../src/vertexShader.txt");
+    const char *fs = loadShader((char *)"../src/fragmentShader.txt");
+    if (vs == NULL || fs==NULL){
+      std::cerr<<"Failed to load shaders."<<std::endl;
+      return -1;
+    }
 
     //compile the shaders
     GLint shader_status;
@@ -375,21 +387,45 @@ float getDT()
     return ret;
 }
 
-int loadShader(char* filename, char* shadercode)
+/*
+loadShader
+P01
+input: filename
+output: char * containing shader loaded from filename
+ */
+char* loadShader(char* filename)
 {
     //open file, check exists and open
-    ifstream shaderfile;
+    std::ifstream shaderfile;
+    char* shadercode;
     shaderfile.open(filename);
     if (!shaderfile.good())
     {
-	std::cerr<<"Shader file"<<filename<<"failed to open."<<std::endl;
-	return -1;
+	std::cerr<<"Shader file "<<filename<<" failed to open."<<std::endl;
+	return shadercode;
     }
     //find length of file
-    
-    //create new char of the length
-    //load shader into char
-    //return
+    long length;
+    shaderfile.seekg(0, shaderfile.end);
+    length = shaderfile.tellg();
+    shaderfile.seekg(0, shaderfile.beg);
 
-    return 0;
+    //create new char of the length
+    shadercode = new char[length];
+
+    int i = 0;
+    //load shader into car
+    while(shaderfile.good())
+    {
+      shadercode[i] = shaderfile.get();
+      if(!shaderfile.eof()){
+          i++;
+      }
+    }
+    //termination symbol?
+    shadercode[i]=0;
+    //std::cout<<std::endl<<shadercode<<std::endl;//debug print
+
+    //return
+    return shadercode;
 }
