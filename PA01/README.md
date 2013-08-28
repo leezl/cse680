@@ -1,6 +1,6 @@
 Project 01: shader loader and rotating cube
 ========================================
-This project is based on the example in the Torwegia-Matrix-Example folder.
+This project is based on the example in the Torwegia-Matrix-Example.
 
 The assigned alterations are to
 1.) Write a Shader Loader and move the shaders to files.
