@@ -6,7 +6,21 @@ The assigned alterations are to
 1.) Write a Shader Loader and move the shaders to files.
 2.) Make the cube rotate about its Y-axis as well as move in the circle.
 
-
+Added:    
+    
+    char* loadShader(char* filename);
+    
+Updated:   
+    
+    void update();   
+    
+Update now includes a rotation of the model. 
+    
+    void initialize();   
+        
+Iniltialize now use loadShader().   
+    
+    
 The following is still true:
 
 Building This Example
