@@ -29,7 +29,9 @@ int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
 
+//Why am I adding more Globals?
 bool rotateFlag=true;
+float rotationSpeed=120.0;
 
 //uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
@@ -56,6 +58,8 @@ void cleanUp();
 char* loadShader(char* filename);
 void createRotationMenu();
 void rotation_menu(int id);
+void rotation_speed(int key, int x, int y);
+void mouse_rotation(int button, int state, int x, int y);
 
 //--Random time things
 float getDT();
@@ -63,7 +67,9 @@ std::chrono::time_point<std::chrono::high_resolution_clock> t1,t2;
 
 
 //--Main
-//PA2: added rotation menu creation.
+//PA2: 
+//    *added rotation menu creation.
+//    *added special keyboard function (arrows)
 int main(int argc, char **argv)
 {
     // Initialize glut
@@ -91,6 +97,8 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
+    glutSpecialFunc(rotation_speed);//special key function
+    glutMouseFunc(mouse_rotation);//mouse callback
 
     // Initialize all of our resources(shaders, geometry)
     bool init = initialize();
@@ -166,7 +174,7 @@ void update()
 
     angle += dt * M_PI/2; //move through 90 degrees a second
     if (rotateFlag){
-      rotAngle += dt * 120.0f; //this is degrees
+      rotAngle += dt * rotationSpeed; //this is degrees
     }
 
     model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
@@ -193,9 +201,22 @@ void reshape(int n_w, int n_h)
 void keyboard(unsigned char key, int x_pos, int y_pos)
 {
     // Handle keyboard input
-    if(key == 27)//ESC
+  switch(key)
     {
+    case 27://ESC
         exit(0);
+	break;//why is this necessary...
+    case 97://a
+      rotationSpeed -= 10.0;
+      break;
+    case 100://d
+      rotationSpeed += 10.0;
+      break;
+    case 32://space
+    case 115://s
+      rotationSpeed = -rotationSpeed;
+    default:
+      break;
     }
 }
 
@@ -455,6 +476,12 @@ process: Creates a menu for rotation and closing the program.
   return;
 }
 
+ /*
+PA02
+Input: menu item id
+Output: none
+Process: start or stop rotation, or quit
+  */
 void rotation_menu(int id)
 {
   switch(id)
@@ -469,5 +496,44 @@ void rotation_menu(int id)
     std::cerr<<"Rotation menu sent something weird..."<<id<<std::endl;
   }
   glutPostRedisplay();
+  return;
+}
+
+/*
+PA02
+Input: key pressed, mouse location
+Output: none
+Process: change rotation speed if up or down keys were pressed.
+*/
+void rotation_speed(int key, int x, int y)
+{
+  //x and y are mouse position: how can we use this?
+  switch(key)
+    {
+    case GLUT_KEY_UP:
+      rotationSpeed += 10.0;
+      //rotationSpeed = fmod((rotationSpeed+10.0), 360.0);
+      break;
+    case GLUT_KEY_DOWN:
+      rotationSpeed -= 10.0;
+      //rotationSpeed = fmod((rotationSpeed-10.0), 360.0);
+      break;
+    case GLUT_KEY_LEFT:
+      break;
+    case GLUT_KEY_RIGHT:
+      break;
+    }
+  glutPostRedisplay();
+  return;
+}
+/*
+Input: button id, state of button, position of mouse
+Output: none
+Process: reverse direction on left click
+ */
+void mouse_rotation(int button, int state, int x, int y)
+{
+  if(button==GLUT_LEFT_BUTTON && state==GLUT_DOWN)
+    rotationSpeed = -rotationSpeed;
   return;
 }
