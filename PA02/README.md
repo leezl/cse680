@@ -3,10 +3,15 @@ Project 02: Interaction: Menus, Keyboard, and Mouse
 This project is based on the example in the Torwegia-Matrix-Example.
 
 CONTROLS:
+
 Right Click: brings up menu: Start/Stop Spin and Quit
+
 Left Click: Reverses Spin
+
 Up Arrow/D: Increases Spin Speed
+
 Down Arrow/A: Decreases Spin Speed (can go negative)
+
 Space/S: Reverses Spin
 
 The assigned alterations are to add the following:
