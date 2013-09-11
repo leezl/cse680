@@ -2,7 +2,6 @@
 Project 02, Graphics
 Edited: Liesl Wigand
 Copyright 2013 Liesl Wigand
-^ Because Google said so :)
  */
 
 
@@ -279,33 +278,15 @@ bool initialize() {
     // --Geometry done
 
     Shader vertex_shader(GL_VERTEX_SHADER);
-    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    // Should return at least const char *vs, *fs; both loaded from files
-    // Default filenames: ptVertShader.txt, ptFragShader.txt
-
-    // const char *vs, *fs;
-    const char *fs = loadShader((char *)"assets/shaders/ptFragShader.txt");
-    if ( fs == NULL ) {
-      std::cerr << "Failed to load shaders." << std::endl;
-      return -1;
-    }
-
-    // Now the Fragment shader
-    glShaderSource(fragment_shader, 1, &fs, NULL);
-    glCompileShader(fragment_shader);
-    // check the compile status
-    glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &shader_status);
-    if ( !shader_status ) {
-        std::cerr << "[F] FAILED TO COMPILE FRAGMENT SHADER!" << std::endl;
-        return false;
-    }
+    //GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    Shader fragment_shader(GL_FRAGMENT_SHADER);
+    GLint shader_status;
 
     // Now we link the 2 shader objects into a program
     // This program is what is run on the GPU
     program = glCreateProgram();
-    glAttachShader(program, vertex_shader);//change param
-    glAttachShader(program, fragment_shader);
+    glAttachShader(program, vertex_shader.get());
+    glAttachShader(program, fragment_shader.get());
     glLinkProgram(program);
     // check if everything linked ok
     glGetProgramiv(program, GL_LINK_STATUS, &shader_status);

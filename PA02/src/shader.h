@@ -8,7 +8,9 @@ Shader class header:
 
 */
 // Needs glew, glut, glm? Just gl.h? order will matter in main
-#include <GL/gl.h>
+#include <GL/glew.h>  // glew must be included before the main gl libs
+#include <GL/glut.h>  // doing otherwise causes compiler shouting
+// #include <GL/gl.h> // not needed now
 
 #ifndef SHADER_H_
 #define SHADER_H_
@@ -16,26 +18,23 @@ Shader class header:
 class Shader {
   private:
     // handle GLuint
-    GLenum ref;
+    GLenum kind;
     GLuint handle;
 
-    // initialize the shader class here not constructor
-    bool init();
     // load from file
     char* loadShader(char* filename);
     // compile
-    void compile();
+    void compile(const char *shad);
     // create
-    void createShader(GLenum shaderType);
+    void createShader(GLuint shaderType, const char *shad);
 
   public:
     // constructor(s)
-    explicit Shader(GLenum shaderType);
-    Shader(GLenum shaderType, char* filename);
+    explicit Shader(GLuint shaderType);
+    Shader(GLuint shaderType, char* filename);
     ~Shader();
     // added function to move possible errors
     // from constructor to other...exceptions wouldve worked too.
-    init();
     GLuint get() const;
 };
 

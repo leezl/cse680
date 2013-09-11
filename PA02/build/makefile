@@ -1,16 +1,19 @@
-# Linux
+
 CC=g++
-
-# For Macs uncomment the next line and comment out the previous one
-#CC=clang++
-# Assuming you want to use a recent compiler
-
-# Compiler flags
-LIBS= -lglut -lGLEW -lGL
 CXXFLAGS= -g -Wall -std=c++0x
+LIBS= -lglut -lGLEW -lGL
+SOURCES= ../src/shader.cpp ../src/main.cpp
+DEPS = ../src/shader.h
+OBJECTS=$(SOURCES:.cpp=.o)
+EXECUTABLE=PA02
 
-all: ../bin/PA02
+all: $(SOURCES) $(EXECUTABLE)
 
-../bin/PA02: ../src/main.cpp
-	$(CC) $(CXXFLAGS) ../src/main.cpp -o ../bin/PA02 $(LIBS)
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(CXXFLAGS) $(OBJECTS) -o $@ $(LIBS)
 
+.cpp.o: $(DEPS)
+	$(CC) $(CXXFLAGS) $< -o $@ $(LIBS)
+
+clean:
+	rm -f obj/*.o *~ core *~ 

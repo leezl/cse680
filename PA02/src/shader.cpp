@@ -12,21 +12,36 @@ Shader class header:
 #include "shader.h"
  
 // Constructor with default shader loaded (still needs type)
-Shader::Shader(GLenum shaderType) {
+Shader::Shader(GLuint shaderType) {
     // check type
     if ( shaderType == GL_VERTEX_SHADER ) {
         // store correct default
-      const char *shad = loadShader((char *)"assets/shader/ptVertShader.txt");
+        const char *shad = loadShader((char *)"assets/shader/ptVertShader.txt");
+        createShader(shaderType, shad);
     }
     else if ( shaderType == GL_VERTEX_SHADER ) {
-      const char *shad = loadShader((char *)"assets/shader/ptFragShader.txt");
+        const char *shad = loadShader((char *)"assets/shader/ptFragShader.txt");
+        createShader(shaderType, shad);
     }
     else {
         //what? but we don't have one of those!!!???
         std::cerr << "We don't have a default shader for "
            "anything but Vertex and Fragment. Check your shaders." << std::endl;
         const char *shad = NULL;
+        createShader(shaderType, shad);
     }
+}
+
+// Constructor with filename recieved
+Shader::Shader(GLuint shaderType, char* filename) {
+    // load shad from file
+    const char *shad = loadShader(filename);
+    // create shader
+    createShader(shaderType, shad);
+}
+
+//creates some basic shader stuff that is the same across types
+void Shader::createShader(GLuint shaderType, const char *shad) {
     try {
         if ( shad == NULL ) {
 	    throw 10;
@@ -35,15 +50,10 @@ Shader::Shader(GLenum shaderType) {
     catch (int e) {
         std::cerr << "Failed to load shader." << std::endl;
     }
-    createShader(shaderType, shad);
-}
-
-// Constructor with filename recieved
-Shader::Shader(GLenum shaderType, char* filename) {
-    // load shad from file
-    const char *shad = loadShader(filename);
-    // create shader
-    createShader(shaderType, shad);
+    kind = shaderType;
+    //create Shader
+    handle = glCreateShader(shaderType);
+    compile(shad);
 }
 
 //compiles shader, used in constructor (we assume you'll use what you load now)
@@ -62,16 +72,8 @@ void Shader::compile(const char *shad) {
         }
     }
     catch (int e) {
-      std::cerr << "[F] FAILED TO COMPILE SHADER! " << ref << std::endl;
+      std::cerr << "[F] FAILED TO COMPILE SHADER! " << kind << std::endl;
     }
-}
-
-//creates some basic shader stuff that is the same across types
-void Shader::createShader(GLenum shaderType, const char *shad) {
-    ref = shaderType;
-    //create Shader
-    handle = glCreateShader(shaderType);
-    compile(shad);
 }
  
 /*
@@ -87,7 +89,7 @@ char* Shader::loadShader(char* filename) {
     char* shadercode;
     shaderfile.open(filename);
     if ( !shaderfile.good() ) {
-        std::cerr << "Shader file " << filename << " failed to open." << Sstd::endl;
+        std::cerr << "Shader file " << filename << " failed to open." << std::endl;
         return shadercode;
     }
     // find length of file
