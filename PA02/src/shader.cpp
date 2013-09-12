@@ -13,20 +13,26 @@ Shader class header:
  
 // Constructor with default shader loaded (still needs type)
 Shader::Shader(GLuint shaderType) {
+    std::cout << "Making shader."<<std::endl;
     // check type
     if ( shaderType == GL_VERTEX_SHADER ) {
+        std::cout<<"Making vertex shader"<<std::endl;
         // store correct default
-        const char *shad = loadShader((char *)"assets/shader/ptVertShader.txt");
+        const char *shad = loadShader((char *)"assets/shaders/ptVertShader.vs");
+        std::cout<<"moving to createshader vertex"<<std::endl;
         createShader(shaderType, shad);
     }
-    else if ( shaderType == GL_VERTEX_SHADER ) {
-        const char *shad = loadShader((char *)"assets/shader/ptFragShader.txt");
+    else if ( shaderType == GL_FRAGMENT_SHADER ) {
+        std::cout<<"Making fragment shader"<<std::endl;
+        const char *shad = loadShader((char *)"assets/shaders/ptFragShader.fs");
+        std::cout<<"calling createshader fragment"<<std::endl;
         createShader(shaderType, shad);
     }
     else {
         //what? but we don't have one of those!!!???
         std::cerr << "We don't have a default shader for "
-           "anything but Vertex and Fragment. Check your shaders." << std::endl;
+           "anything but Vertex and Fragment. Check your shaders." 
+            << shaderType << std::endl;
         const char *shad = NULL;
         createShader(shaderType, shad);
     }
@@ -42,6 +48,7 @@ Shader::Shader(GLuint shaderType, char* filename) {
 
 //creates some basic shader stuff that is the same across types
 void Shader::createShader(GLuint shaderType, const char *shad) {
+    std::cout<<"creating shader"<<std::endl;
     try {
         if ( shad == NULL ) {
 	    throw 10;
@@ -58,6 +65,7 @@ void Shader::createShader(GLuint shaderType, const char *shad) {
 
 //compiles shader, used in constructor (we assume you'll use what you load now)
 void Shader::compile(const char *shad) {
+    std::cout<<"Compiling shader"<<std::endl;
     // compile the shaders
     GLint shader_status;
 
@@ -84,35 +92,45 @@ output: char * containing shader loaded from filename
  */
 // Loads a shader from a file into a string
 char* Shader::loadShader(char* filename) {
-    // open file, check exists and open
+    //open file, check exists and open
     std::ifstream shaderfile;
     char* shadercode;
     shaderfile.open(filename);
-    if ( !shaderfile.good() ) {
-        std::cerr << "Shader file " << filename << " failed to open." << std::endl;
-        return shadercode;
+    if (!shaderfile.good())
+    {
+	std::cerr<<"Shader file "<<filename<<" failed to open."<<std::endl;
+	return shadercode;
     }
-    // find length of file
+    //find length of file
     long length;
     shaderfile.seekg(0, shaderfile.end);
     length = shaderfile.tellg();
     shaderfile.seekg(0, shaderfile.beg);
 
-    // create new char of the length
+    //create new char of the length
     shadercode = new char[length];
 
     int i = 0;
-    // load shader into car
-    while ( shaderfile.good() ) {
+    //load shader into car
+    while(shaderfile.good())
+    {
       shadercode[i] = shaderfile.get();
-      if ( !shaderfile.eof() ) {
+      if(!shaderfile.eof()){
           i++;
       }
     }
-    // termination symbol?
+    //termination symbol?
     shadercode[i]=0;
-    // std::cout<<std::endl<<shadercode<<std::endl;//debug print
+    //std::cout<<std::endl<<shadercode<<std::endl;//debug print
 
-    // return
+    //return
     return shadercode;
+}
+
+GLuint Shader::get() const {
+    return handle;
+}
+
+Shader::~Shader() {
+    
 }
