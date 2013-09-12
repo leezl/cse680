@@ -2,7 +2,6 @@
 Project 02, Graphics
 Edited: Liesl Wigand
 Copyright 2013 Liesl Wigand
-^ Because Google said so :)
  */
 
 
@@ -16,6 +15,8 @@ Copyright 2013 Liesl Wigand
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>  // Makes passing matrices to shaders easier
+
+#include "shader.h"
 
 
 // --Data types
@@ -276,48 +277,16 @@ bool initialize() {
 
     // --Geometry done
 
-    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    // Should return at least const char *vs, *fs; both loaded from files
-    // Default filenames: ptVertShader.txt, ptFragShader.txt
-
-    // const char *vs, *fs;
-    const char *vs = loadShader((char *)"assets/shaders/ptVertShader.txt");
-    const char *fs = loadShader((char *)"assets/shaders/ptFragShader.txt");
-    if ( vs == NULL || fs == NULL ) {
-      std::cerr << "Failed to load shaders." << std::endl;
-      return -1;
-    }
-
-    // compile the shaders
+    Shader vertex_shader(GL_VERTEX_SHADER);
+    //GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    Shader fragment_shader(GL_FRAGMENT_SHADER);
     GLint shader_status;
-
-    // Vertex shader first
-    glShaderSource(vertex_shader, 1, &vs, NULL);
-    glCompileShader(vertex_shader);
-    // check the compile status
-    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &shader_status);
-    if ( !shader_status ) {
-        std::cerr << "[F] FAILED TO COMPILE VERTEX SHADER!" << std::endl;
-        return false;
-    }
-
-    // Now the Fragment shader
-    glShaderSource(fragment_shader, 1, &fs, NULL);
-    glCompileShader(fragment_shader);
-    // check the compile status
-    glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &shader_status);
-    if ( !shader_status ) {
-        std::cerr << "[F] FAILED TO COMPILE FRAGMENT SHADER!" << std::endl;
-        return false;
-    }
 
     // Now we link the 2 shader objects into a program
     // This program is what is run on the GPU
     program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
+    glAttachShader(program, vertex_shader.get());
+    glAttachShader(program, fragment_shader.get());
     glLinkProgram(program);
     // check if everything linked ok
     glGetProgramiv(program, GL_LINK_STATUS, &shader_status);
@@ -384,46 +353,6 @@ float getDT() {
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
     t1 = std::chrono::high_resolution_clock::now();
     return ret;
-}
-
-/*
-loadShader
-P01
-input: filename
-output: char * containing shader loaded from filename
- */
-char* loadShader(char* filename) {
-    // open file, check exists and open
-    std::ifstream shaderfile;
-    char* shadercode;
-    shaderfile.open(filename);
-    if ( !shaderfile.good() ) {
-        std::cerr << "Shader file " << filename << " failed to open." << Sstd::endl;
-        return shadercode;
-    }
-    // find length of file
-    long length;
-    shaderfile.seekg(0, shaderfile.end);
-    length = shaderfile.tellg();
-    shaderfile.seekg(0, shaderfile.beg);
-
-    // create new char of the length
-    shadercode = new char[length];
-
-    int i = 0;
-    // load shader into car
-    while ( shaderfile.good() ) {
-      shadercode[i] = shaderfile.get();
-      if ( !shaderfile.eof() ) {
-          i++;
-      }
-    }
-    // termination symbol?
-    shadercode[i]=0;
-    // std::cout<<std::endl<<shadercode<<std::endl;//debug print
-
-    // return
-    return shadercode;
 }
 
 /*

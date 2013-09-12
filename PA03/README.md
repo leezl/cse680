@@ -28,6 +28,7 @@ Building This Example
 *This example requires GLM*
 *On ubuntu it can be installed with this command*
 
+>$ sudo apt-get install freeglut3-dev freeglut3 libglew1.6-dev
 >$ sudo apt-get install libglm-dev
 
 To build this example just 
