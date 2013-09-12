@@ -30,7 +30,7 @@ struct Vertex {
 // Just for this example!
 int w = 640, h = 480;  // Window size
 GLuint program;  // The GLSL program handle
-GLuint vbo_geometry;  // VBO handle for our geometry
+GLuint vbo_geometry, moon_geo;  // VBO handle for our geometry
 
 // Why am I adding more Globals?
 bool rotateFlag = true;
@@ -274,12 +274,16 @@ bool initialize() {
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
     glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
+    // Can I reuse these buffers? they're both cubes...
+    glGenBuffers(1, &moon_geo);
+    glBindBuffer(GL_ARRAY_BUFFER, moon_geo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
 
     // --Geometry done
 
     Shader vertex_shader(GL_VERTEX_SHADER);
-    //GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     Shader fragment_shader(GL_FRAGMENT_SHADER);
+
     GLint shader_status;
 
     // Now we link the 2 shader objects into a program
