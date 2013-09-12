@@ -6,13 +6,13 @@ LIBS= -lglut -lGLEW -lGL
 SOURCES= ../src/shader.cpp ../src/main.cpp
 DEPS = ../src/shader.h
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=../bin/PA02
+EXECUTABLE=../bin/PA03
 RM= /bin/rm -f
 
-all: ../bin/PA02
+all: $(EXECUTABLE)
 
-../bin/PA02: shader.o main.o
-	$(CC) $(CXXFLAGS) shader.o main.o -o ../bin/PA02 $(LIBS)
+../bin/PA03: shader.o main.o
+	$(CC) $(CXXFLAGS) shader.o main.o -o $(EXECUTABLE) $(LIBS)
 
 main.o: ../src/main.cpp ../src/shader.h
 	$(CC) $(CXXO) $(CXXFLAGS) ../src/main.cpp -o main.o
@@ -21,4 +21,4 @@ shader.o: ../src/shader.cpp ../src/shader.h
 	$(CC) $(CXXO) $(CXXFLAGS) ../src/shader.cpp -o shader.o
 
 clean:
-	$(RM) *.o ../bin/PA02
+	$(RM) *.o $(EXECUTABLE)

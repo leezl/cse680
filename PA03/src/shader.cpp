@@ -15,16 +15,12 @@ Shader class header:
 Shader::Shader(GLenum shaderType) {
     // check type
     if ( shaderType == GL_VERTEX_SHADER ) {
-        std::cout<<"Making vertex shader"<<std::endl;
         // store correct default
         const char *shad = loadShader((char *)"assets/shaders/ptVertShader.vs");
-        std::cout<<"moving to createshader vertex"<<std::endl;
         createShader(shaderType, shad);
     }
     else if ( shaderType == GL_FRAGMENT_SHADER ) {
-        std::cout<<"Making fragment shader"<<std::endl;
         const char *shad = loadShader((char *)"assets/shaders/ptFragShader.fs");
-        std::cout<<"calling createshader fragment"<<std::endl;
         createShader(shaderType, shad);
     }
     else {
