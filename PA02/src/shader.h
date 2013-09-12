@@ -26,12 +26,13 @@ class Shader {
     // compile
     void compile(const char *shad);
     // create
-    void createShader(GLuint shaderType, const char *shad);
+    void createShader(GLenum shaderType, const char *shad);
 
   public:
     // constructor(s)
-    explicit Shader(GLuint shaderType);
-    Shader(GLuint shaderType, char* filename);
+    explicit Shader(GLenum shaderType);
+    Shader(GLenum shaderType, char* filename);
+    void deleteShader();
     ~Shader();
     // added function to move possible errors
     // from constructor to other...exceptions wouldve worked too.

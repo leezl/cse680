@@ -12,8 +12,7 @@ Shader class header:
 #include "shader.h"
  
 // Constructor with default shader loaded (still needs type)
-Shader::Shader(GLuint shaderType) {
-    std::cout << "Making shader."<<std::endl;
+Shader::Shader(GLenum shaderType) {
     // check type
     if ( shaderType == GL_VERTEX_SHADER ) {
         std::cout<<"Making vertex shader"<<std::endl;
@@ -39,7 +38,7 @@ Shader::Shader(GLuint shaderType) {
 }
 
 // Constructor with filename recieved
-Shader::Shader(GLuint shaderType, char* filename) {
+Shader::Shader(GLenum shaderType, char* filename) {
     // load shad from file
     const char *shad = loadShader(filename);
     // create shader
@@ -47,8 +46,7 @@ Shader::Shader(GLuint shaderType, char* filename) {
 }
 
 //creates some basic shader stuff that is the same across types
-void Shader::createShader(GLuint shaderType, const char *shad) {
-    std::cout<<"creating shader"<<std::endl;
+void Shader::createShader(GLenum shaderType, const char *shad) {
     try {
         if ( shad == NULL ) {
 	    throw 10;
@@ -65,7 +63,6 @@ void Shader::createShader(GLuint shaderType, const char *shad) {
 
 //compiles shader, used in constructor (we assume you'll use what you load now)
 void Shader::compile(const char *shad) {
-    std::cout<<"Compiling shader"<<std::endl;
     // compile the shaders
     GLint shader_status;
 
@@ -82,6 +79,7 @@ void Shader::compile(const char *shad) {
     catch (int e) {
       std::cerr << "[F] FAILED TO COMPILE SHADER! " << kind << std::endl;
     }
+    delete[] shad;
 }
  
 /*
@@ -108,7 +106,7 @@ char* Shader::loadShader(char* filename) {
     shaderfile.seekg(0, shaderfile.beg);
 
     //create new char of the length
-    shadercode = new char[length];
+    shadercode = new char[length+1];
 
     int i = 0;
     //load shader into car
@@ -131,6 +129,10 @@ GLuint Shader::get() const {
     return handle;
 }
 
+void Shader::deleteShader() {
+    glDeleteShader(handle);
+}
+
 Shader::~Shader() {
-    
+    glDeleteShader(handle);
 }
