@@ -1,4 +1,4 @@
-Project 03: Interaction: Moons
+Project 03: Moons
 ========================================
 This project is based on the previous Project, PA02.
 
@@ -17,19 +17,19 @@ The assigned alterations are to add the following:
 3.) (Required for Grad Students): Add text to indicate which direction the planet is rotating. This should change when the direction changes.    
 
 Added:    
-shader.cpp
-shader.h
+shader.cpp    
+shader.h    
     
 Updated:   
-initialize();
-render();
-update();
-
-Should have added:
-An object class for storing the model matrices, buffer indices, and display stuff.
+initialize();  
+render();  
+update();  
+  
+Should have added:  
+An object class for storing the model matrices, buffer indices, and display stuff.  
     
-The following is still true:
-
+The following is still true:  
+  
 Building This Example
 ---------------------
 
