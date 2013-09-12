@@ -2,6 +2,8 @@
 Project 02, Graphics
 Edited: Liesl Wigand
 Copyright 2013 Liesl Wigand
+
+Need to start storing object matrices, and updates in a class...
  */
 
 
@@ -11,13 +13,13 @@ Copyright 2013 Liesl Wigand
 #include <typeinfo>  // debugger
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>  // Makes passing matrices to shaders easier
 
 #include "shader.h"
-
 
 // --Data types
 // This object will define the attributes of a vertex(position, color, etc...)
@@ -31,10 +33,11 @@ struct Vertex {
 int w = 640, h = 480;  // Window size
 GLuint program;  // The GLSL program handle
 GLuint vbo_geometry, moon_geo;  // VBO handle for our geometry
+char *rotDirStr = "Rotating Right";
 
 // Why am I adding more Globals?
 bool rotateFlag = true;
-float rotationSpeed = 120.0;
+float rotationSpeed, rotationSpeedPlanet = 120.0;
 
 // uniform locations
 GLint loc_mvpmat;  // Location of the modelviewprojection matrix in the shader
@@ -44,7 +47,9 @@ GLint loc_position;
 GLint loc_color;
 
 // transform matrices
-glm::mat4 model;  // obj->world each object should have its own model matrix
+//std::vector<Objects> objects;  // stores model matices by buffer index
+glm::mat4 modelP;  // obj->world each object should have its own model matrix
+glm::mat4 modelM;  
 glm::mat4 view;  // world->eye
 glm::mat4 projection;  // eye->clip
 glm::mat4 mvp;  // premultiplied modelviewprojection
@@ -122,7 +127,7 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // premultiply the matrix for this example
-    mvp = projection * view * model;
+    mvp = projection * view * modelP;
 
     // enable the shader program
     glUseProgram(program);
@@ -151,9 +156,40 @@ void render() {
 
     glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
 
+    // SECOND OBJECT< NEED STORAGE AND LOOPS LATER
+    //calculate other matrix
+    mvp = projection * view * modelM;
+    // upload the matrix to the shader
+    glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
+
+    //Try drawing moon here...
+    glBindBuffer(GL_ARRAY_BUFFER, moon_geo);
+    // set pointers into the vbo for each of the attributes(position and color)
+    glVertexAttribPointer(loc_position,  // location of attribute
+                          3,  // number of elements
+                          GL_FLOAT,  // type
+                          GL_FALSE,  // normalized?
+                          sizeof(Vertex),  // stride
+                          0);  // offset
+
+    glVertexAttribPointer(loc_color,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          sizeof(Vertex),
+                          (void*)offsetof(Vertex, color));
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
+
     // clean up
     glDisableVertexAttribArray(loc_position);
     glDisableVertexAttribArray(loc_color);
+    glUseProgram(0);
+    int lenghOfString = (int)strlen(rotDirStr);
+    glRasterPos2f(0.0-0.9, 0.0+0.9);
+    for ( int i = 0; i < lenghOfString; i++ ) {
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, rotDirStr[i]);
+    }
 
     // swap the buffers
     glutSwapBuffers();
@@ -167,20 +203,43 @@ P02: check a flag for rotation
 void update() {
     // total time
     static float angle = 0.0;
+    static float angleMoon = 0.0;
     static float rotAngle = 0.0;
+    static float rotAngleMoon = 0.0;
     float dt = getDT();  // if you have anything moving, use dt.
 
-    angle += dt * M_PI/2;  // move through 90 degrees a second
-    if ( rotateFlag ) {
-      rotAngle += dt * rotationSpeed;  // this is degrees
+    if ( rotationSpeedPlanet >0.0 ) {
+        rotDirStr = "Rotating Right";
+    }
+    else {
+        rotDirStr = "Rotating Left";
     }
 
-    model = glm::translate(glm::mat4(1.0f),
-                           glm::vec3(4.0 * sin(angle),
-                           0.0, 4.0 * cos(angle)));
+    angle += dt * M_PI/2;  // move through 90 degrees a second
+    angleMoon += dt * M_PI;
+    if ( rotateFlag ) {
+      rotAngle += dt * rotationSpeedPlanet;  // this is degrees
+    }
+    rotAngleMoon += dt * rotationSpeed;
+
+    modelP = glm::translate(glm::mat4(1.0f),
+                            glm::vec3(4.25 * sin(angle),
+                                      0.0, 4.25 * cos(angle)));
     // The following should: rotate about z axis
     // Where params are: (initial matrix, angle, axis)
-    model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelP = glm::rotate(modelP, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelP = glm::scale(modelP, glm::vec3(0.75f, 0.75f, 0.75f));
+
+    //move moon too
+    modelM = glm::translate(glm::mat4(1.0f),
+                            glm::vec3(4.25 * sin(angle),
+                                      0.0, 4.25 * cos(angle)));
+    modelM = glm::translate(modelM,
+                            glm::vec3(2.0 * sin(angleMoon),
+				      0.0, 2.0 * cos(angleMoon)));
+    modelM = glm::rotate(modelM, rotAngleMoon, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelM = glm::scale(modelM, glm::vec3(0.4f, 0.4f, 0.4f));
+
     // Update the state of the scene
     glutPostRedisplay();  // call the display callback
 }
@@ -203,14 +262,14 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
       exit(0);
       break;  // why is this necessary...
     case 97:  // a
-      rotationSpeed -= 10.0;
+      rotationSpeedPlanet -= 10.0;
       break;
     case 100:  // d
-      rotationSpeed += 10.0;
+      rotationSpeedPlanet += 10.0;
       break;
     case 32:  // space
     case 115:  // s
-      rotationSpeed = -rotationSpeed;
+      rotationSpeedPlanet = -rotationSpeedPlanet;
     default:
       break;
     }
@@ -404,16 +463,22 @@ void rotation_speed(int key, int x, int y) {
   // x and y are mouse position: how can we use this?
   switch (key) {
     case GLUT_KEY_UP:
-      rotationSpeed += 10.0;
+      rotationSpeedPlanet += 10.0;
       // rotationSpeed = fmod((rotationSpeed+10.0), 360.0);
       break;
     case GLUT_KEY_DOWN:
-      rotationSpeed -= 10.0;
+      rotationSpeedPlanet -= 10.0;
       // rotationSpeed = fmod((rotationSpeed-10.0), 360.0);
       break;
     case GLUT_KEY_LEFT:
+      if ( rotationSpeedPlanet>0 ) {
+          rotationSpeedPlanet = -rotationSpeedPlanet;
+      }
       break;
     case GLUT_KEY_RIGHT:
+      if ( rotationSpeedPlanet<0 ) {
+          rotationSpeedPlanet = -rotationSpeedPlanet;
+      }
       break;
     }
   glutPostRedisplay();
@@ -426,6 +491,6 @@ Process: reverse direction on left click
  */
 void mouse_rotation(int button, int state, int x, int y) {
   if  (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN )
-    rotationSpeed = -rotationSpeed;
+    rotationSpeedPlanet = -rotationSpeedPlanet;
   return;
 }
