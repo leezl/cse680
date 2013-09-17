@@ -14,13 +14,6 @@ Space/S: Reverses Spin
 The assigned alterations are to add the following:    
 1.) Create a model in Blender and export the OBJ file.    
 2.) Model Loading: Write a model loader that can load your OBJ from Part 1 into your program.    
-    
-Added:    
-    
-Updated:    
-initialize();    
-render();    
-update();    
 
 Should have added:    
 An object class for storing the model matrices, buffer indices, and display stuff.    
