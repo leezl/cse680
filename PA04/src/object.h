@@ -2,14 +2,14 @@
 Storage for objects: buffer id, model matrix
 */
 
-class Objects {
+class Object {
   private:
     glm::mat4 model;
     GLuint geometry;
     
   public:
-    Objects();
-    ~Objects();
+    Object();
+    ~Object();
     glm::mat4 getModel();
     GLuint getGeometry();
 

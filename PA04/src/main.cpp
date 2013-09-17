@@ -1,9 +1,8 @@
 /*
-Project 02, Graphics
+Project 04, Graphics
 Edited: Liesl Wigand
 Copyright 2013 Liesl Wigand
 
-Need to start storing object matrices, and updates in a class...
  */
 
 

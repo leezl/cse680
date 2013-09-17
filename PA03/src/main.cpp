@@ -1,5 +1,5 @@
 /*
-Project 02, Graphics
+Project 03, Graphics
 Edited: Liesl Wigand
 Copyright 2013 Liesl Wigand
 
