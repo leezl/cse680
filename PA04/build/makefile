@@ -11,7 +11,7 @@ RM= /bin/rm -f
 
 all: $(EXECUTABLE)
 
-../bin/PA03: shader.o main.o
+$(EXECUTABLE): shader.o main.o
 	$(CC) $(CXXFLAGS) shader.o main.o -o $(EXECUTABLE) $(LIBS)
 
 main.o: ../src/main.cpp ../src/shader.h
@@ -19,6 +19,9 @@ main.o: ../src/main.cpp ../src/shader.h
 
 shader.o: ../src/shader.cpp ../src/shader.h
 	$(CC) $(CXXO) $(CXXFLAGS) ../src/shader.cpp -o shader.o
+
+object.o: ../src/object.cpp ../src/object.h
+        $(CC) $(CXXO) $(CXXFLAGS) ../src/object.cpp -o object.o
 
 clean:
 	$(RM) *.o $(EXECUTABLE)
