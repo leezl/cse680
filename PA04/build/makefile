@@ -11,7 +11,7 @@ RM= /bin/rm -f
 
 all: $(EXECUTABLE)
 
-../bin/PA03: shader.o main.o
+../bin/PA: shader.o main.o
 	$(CC) $(CXXFLAGS) shader.o main.o -o $(EXECUTABLE) $(LIBS)
 
 main.o: ../src/main.cpp ../src/shader.h
