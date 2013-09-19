@@ -10,11 +10,11 @@ Storage for objects: buffer id, model matrix
 
 class Object {
   private:
-    glm::mat4 model;
+    glm::mat4 model = glm::mat4(1.0f);
     GLuint geometry;
-    std::vector < glm::vec3 > out_vertices;
-    std::vector < glm::vec2 > out_uvs;
-    std::vector < glm::vec3 > out_normals;
+    std::vector < glm::vec3 > vertices;
+    std::vector < glm::vec2 > uvs;
+    std::vector < glm::vec3 > normals;
     
   public:
     Object(const char* filename);
@@ -23,6 +23,7 @@ class Object {
                         std::vector < glm::vec3 > & out_vertices,
                         std::vector < glm::vec2 > & out_uvs,
                         std::vector < glm::vec3 > & out_normals);
+    bool bindObject();
     glm::mat4 getModel();
     GLuint getGeometry();
 

@@ -332,6 +332,7 @@ bool initialize() {
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
     glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
+    
     // Can I reuse these buffers? they're both cubes...
     glGenBuffers(1, &moon_geo);
     glBindBuffer(GL_ARRAY_BUFFER, moon_geo);

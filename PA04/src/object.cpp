@@ -5,12 +5,22 @@ Liesl Wigand
 
 */
 
-Object::Object(){
+Object::Object(const char* filename){
+    loadObject(filename, vertices, uvs, normals);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
 }
 
 Object::~Object(){
 
+}
+
+bool bindObject(){
+    // Create a Vertex Buffer object to store this vertex info on the GPU
+    glGenBuffers(1, &geometry);
+    glBindBuffer(GL_ARRAY_BUFFER, geometry);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), 
+        &vertices[0], GL_STATIC_DRAW);
 }
 
 bool loadObject(const char * path,
