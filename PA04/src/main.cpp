@@ -19,6 +19,7 @@ Copyright 2013 Liesl Wigand
 #include <glm/gtc/type_ptr.hpp>  // Makes passing matrices to shaders easier
 
 #include "shader.h"
+#include "object.h"
 
 // --Data types
 // This object will define the attributes of a vertex(position, color, etc...)
@@ -31,7 +32,7 @@ struct Vertex {
 // Just for this example!
 int w = 640, h = 480;  // Window size
 GLuint program;  // The GLSL program handle
-GLuint vbo_geometry, moon_geo;  // VBO handle for our geometry
+Object whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
 char *rotDirStr = "Rotating Right";
 
 // Why am I adding more Globals?
@@ -47,8 +48,8 @@ GLint loc_color;
 
 // transform matrices
 //std::vector<Objects> objects;  // stores model matices by buffer index
-glm::mat4 modelP;  // obj->world each object should have its own model matrix
-glm::mat4 modelM;  
+//move model matrix to object? well...
+glm::mat4 modelP;  // obj->world each object should have its own model matrix 
 glm::mat4 view;  // world->eye
 glm::mat4 projection;  // eye->clip
 glm::mat4 mvp;  // premultiplied modelviewprojection
@@ -155,31 +156,6 @@ void render() {
 
     glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
 
-    // SECOND OBJECT< NEED STORAGE AND LOOPS LATER
-    //calculate other matrix
-    mvp = projection * view * modelM;
-    // upload the matrix to the shader
-    glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
-
-    //Try drawing moon here...
-    glBindBuffer(GL_ARRAY_BUFFER, moon_geo);
-    // set pointers into the vbo for each of the attributes(position and color)
-    glVertexAttribPointer(loc_position,  // location of attribute
-                          3,  // number of elements
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          sizeof(Vertex),  // stride
-                          0);  // offset
-
-    glVertexAttribPointer(loc_color,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          sizeof(Vertex),
-                          (void*)offsetof(Vertex, color));
-
-    glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
-
     // clean up
     glDisableVertexAttribArray(loc_position);
     glDisableVertexAttribArray(loc_color);
@@ -202,9 +178,7 @@ P02: check a flag for rotation
 void update() {
     // total time
     static float angle = 0.0;
-    static float angleMoon = 0.0;
     static float rotAngle = 0.0;
-    static float rotAngleMoon = 0.0;
     float dt = getDT();  // if you have anything moving, use dt.
 
     if ( rotationSpeedPlanet >0.0 ) {
@@ -215,11 +189,9 @@ void update() {
     }
 
     angle += dt * M_PI/2;  // move through 90 degrees a second
-    angleMoon += dt * M_PI;
     if ( rotateFlag ) {
       rotAngle += dt * rotationSpeedPlanet;  // this is degrees
     }
-    rotAngleMoon += dt * rotationSpeed;
 
     modelP = glm::translate(glm::mat4(1.0f),
                             glm::vec3(4.25 * sin(angle),
@@ -228,16 +200,6 @@ void update() {
     // Where params are: (initial matrix, angle, axis)
     modelP = glm::rotate(modelP, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
     modelP = glm::scale(modelP, glm::vec3(0.75f, 0.75f, 0.75f));
-
-    //move moon too
-    modelM = glm::translate(glm::mat4(1.0f),
-                            glm::vec3(4.25 * sin(angle),
-                                      0.0, 4.25 * cos(angle)));
-    modelM = glm::translate(modelM,
-                            glm::vec3(2.0 * sin(angleMoon),
-				      0.0, 2.0 * cos(angleMoon)));
-    modelM = glm::rotate(modelM, rotAngleMoon, glm::vec3(0.0f, 1.0f, 0.0f));
-    modelM = glm::scale(modelM, glm::vec3(0.4f, 0.4f, 0.4f));
 
     // Update the state of the scene
     glutPostRedisplay();  // call the display callback
@@ -280,7 +242,7 @@ bool initialize() {
     // this defines a cube, this is why a model loader is nice
     // you can also do this with a draw elements
     // and indices, try to get that working
-    Vertex geometry[] = { {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
+    /*Vertex geometry[] = { {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
                           {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
                           {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
 
@@ -327,14 +289,12 @@ bool initialize() {
                           {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
                           {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
                           {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}}
-                        };
+                        };*/
+    // Above replaced with:
+
     // Create a Vertex Buffer object to store this vertex info on the GPU
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
-    // Can I reuse these buffers? they're both cubes...
-    glGenBuffers(1, &moon_geo);
-    glBindBuffer(GL_ARRAY_BUFFER, moon_geo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
 
     // --Geometry done
