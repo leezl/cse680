@@ -134,14 +134,31 @@ void render() {
 
     //enable attributes
     glEnableVertexAttribArray(loc_position);
-    //glEnableVertexAttribArray(loc_color);
+    glEnableVertexAttribArray(loc_color);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+    // set pointers into the vbo for each of the attributes(position and color)
+    glVertexAttribPointer(loc_position,  // location of attribute
+                          3,  // number of elements
+                          GL_FLOAT,  // type
+                          GL_FALSE,  // normalized?
+                          sizeof(glm::vertex3),  // stride
+                          0);  // offset
+
+    glVertexAttribPointer(loc_color,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          sizeof(glm::vertex3),
+                          0);
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);  
 
     //draw object
     whatIsIt->drawObject(loc_position, 0, 0, loc_color);
 
     // clean up
     glDisableVertexAttribArray(loc_position);
-    //glDisableVertexAttribArray(loc_color);
+    glDisableVertexAttribArray(loc_color);
 
     glUseProgram(0);
 
@@ -155,7 +172,11 @@ P01: added the rotation about the object's y-axis (after translate)
 P02: check a flag for rotation
  */
 void update() {
-    // The following should: rotate about z axis
+    static float rotAngle = 0.0;
+    float dt = getDT(); 
+    rotAngle += dt * 120.0;
+    view = glm::rotate(view, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+
     // Where params are: (initial matrix, angle, axis)
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
@@ -180,6 +201,8 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
     case 27:  // ESC
       exit(0);
       break;  // why is this necessary...
+    case 'a':
+
     default:
       break;
     }

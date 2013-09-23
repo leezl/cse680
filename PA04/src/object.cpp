@@ -7,14 +7,64 @@ Liesl Wigand
 #include "object.h"
 
 Object::Object(const char* filename){
-    if (!loadObjectElementsColor(filename)){
+    /*if (!loadObjectElementsColor(filename)){
         printf("Error Loading Object File.");
-    }
+    }*/
+    //temporarily remove load to test display
+        hasVert=true;
+    vertices = { glm::vec3(-1.0, -1.0, -1.0),
+                 glm::vec3(-1.0, -1.0, 1.0),
+                 glm::vec3(-1.0, 1.0, 1.0),
+
+                 glm::vec3(1.0, 1.0, -1.0),
+                 glm::vec3(-1.0, -1.0, -1.0),
+                 glm::vec3(-1.0, 1.0, -1.0),
+
+                 glm::vec3(1.0, -1.0, 1.0),
+                 glm::vec3(-1.0, -1.0, -1.0),
+                 glm::vec3(1.0, -1.0, -1.0),
+
+                 glm::vec3(1.0, 1.0, -1.0),
+                 glm::vec3(1.0, -1.0, -1.0),
+                 glm::vec3(-1.0, -1.0, -1.0),
+
+                 glm::vec3(-1.0, -1.0, -1.0),
+                 glm::vec3(-1.0, 1.0, 1.0),
+                 glm::vec3(-1.0, 1.0, -1.0),
+
+                 glm::vec3(1.0, -1.0, 1.0),
+                 glm::vec3(-1.0, -1.0, 1.0),
+                 glm::vec3(-1.0, -1.0, -1.0),
+
+                 glm::vec3(-1.0, 1.0, 1.0),
+                 glm::vec3(-1.0, -1.0, 1.0),
+                 glm::vec3(1.0, -1.0, 1.0),
+
+                 glm::vec3(1.0, 1.0, 1.0),
+                 glm::vec3(1.0, -1.0, -1.0),
+                 glm::vec3(1.0, 1.0, -1.0),
+
+                 glm::vec3(1.0, -1.0, -1.0),
+                 glm::vec3(1.0, 1.0, 1.0),
+                 glm::vec3(1.0, -1.0, 1.0),
+
+                 glm::vec3(1.0, 1.0, 1.0),
+                 glm::vec3(1.0, 1.0, -1.0),
+                 glm::vec3(-1.0, 1.0, -1.0),
+
+                 glm::vec3(1.0, 1.0, 1.0),
+                 glm::vec3(-1.0, 1.0, -1.0),
+                 glm::vec3(-1.0, 1.0, 1.0),
+
+                 glm::vec3(1.0, 1.0, 1.0),
+                 glm::vec3(-1.0, 1.0, 1.0),
+                 glm::vec3(1.0, -1.0, 1.0)
+                };
     //crazy debugging:
     for (std::vector<glm::vec3>::iterator it = vertices.begin() ; it != vertices.end(); ++it)
         std::cout << ' ' << (*it)[0]<<','<<(*it)[1]<<','<<(*it)[2]<<std::endl;
-    for (std::vector<glm::vec4>::iterator it = colors.begin() ; it != colors.end(); ++it)
-        std::cout << ' ' << (*it)[0]<<','<<(*it)[1]<<','<<(*it)[2]<<','<<(*it)[3]<<std::endl;
+    //for (std::vector<glm::vec4>::iterator it = colors.begin() ; it != colors.end(); ++it)
+    //    std::cout << ' ' << (*it)[0]<<','<<(*it)[1]<<','<<(*it)[2]<<','<<(*it)[3]<<std::endl;
 }
 
 Object::~Object(){
@@ -244,39 +294,46 @@ void Object::initializeObject(){
     std::cout<<"Setting Element Buffer"<<std::endl;
     glEnableClientState(GL_VERTEX_ARRAY);
     //set element buffer data
-    glGenBuffers(1, &elementBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLubyte), &indices[0], GL_STATIC_DRAW);
+    //glGenBuffers(1, &elementBuffer);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLubyte), &indices[0], GL_STATIC_DRAW);
 
     //set vertices
-    std::cout<<"Setting Vertex Buffer"<<std::endl;
-    glGenBuffers(1, &geometryBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+    if (!mixVert) {
+        std::cout<<"Setting Vertex Buffer"<<std::endl;
+        glGenBuffers(1, &geometryBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
-    //check for normals
-    if (hasNorm) {
-        std::cout<<"Setting Normals Buffer"<<std::endl;
-        glGenBuffers(1, &normalBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-        glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-    }
+        //check for normals
+        if (hasNorm) {
+            std::cout<<"Setting Normals Buffer"<<std::endl;
+            glGenBuffers(1, &normalBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+        }
 
-    //check for uvs
-    if (hasTex) {
-        std::cout<<"Setting UVs Buffer"<<std::endl;
-        glGenBuffers(1, &textureBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-        glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-    }
+        //check for uvs
+        if (hasTex) {
+            std::cout<<"Setting UVs Buffer"<<std::endl;
+            glGenBuffers(1, &textureBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+            glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+        }
 
-    //check colors
-    if (hasColor) {
-        std::cout<<"Setting Colors Buffer"<<std::endl;
-        glGenBuffers(1, &colorBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-        glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STATIC_DRAW);
+        //check colors
+        if (hasColor) {
+            std::cout<<"Setting Colors Buffer"<<std::endl;
+            glGenBuffers(1, &colorBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+            glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STATIC_DRAW);
+        }
+    } else {
+        glGenBuffers(1, &geometryBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
     }
+    //error checker (GLU)
     ErrorCheckValue = glGetError();
     if (ErrorCheckValue != GL_NO_ERROR)
     {
@@ -293,54 +350,67 @@ void Object::initializeObject(){
 void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLint loc_color){
     //bind buffers
     //set vertices
-    glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
-    // set pointers into the vbo for each of the attributes(position and color)
-    glVertexAttribPointer(loc_position,  // location of attribute
-                          3,  // number of elements
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          0,//sizeof(glm::vec3),  // stride
-                          (void*)0);  // offset
+    if (!mixVert) {
+        glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
+        // set pointers into the vbo for each of the attributes(position and color)
+        glVertexAttribPointer(loc_position,  // location of attribute
+                              3,  // number of elements
+                              GL_FLOAT,  // type
+                              GL_FALSE,  // normalized?
+                              0,//sizeof(glm::vec3),  // stride
+                              (void*)0);  // offset
 
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
+        glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
 
-    //check for normals
-    if (hasNorm) {
-        glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-        glVertexAttribPointer(loc_normal,  // location of attribute
-                          3,  // number of elements
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          0,//sizeof(glm::vec3),  // stride
-                          (void*)0);  // offset
+        //check for normals
+        if (hasNorm) {
+            glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+            glVertexAttribPointer(loc_normal,  // location of attribute
+                              3,  // number of elements
+                              GL_FLOAT,  // type
+                              GL_FALSE,  // normalized?
+                              0,//sizeof(glm::vec3),  // stride
+                              (void*)0);  // offset
+        } else {
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+
+        //check for uvs
+        if (hasTex) {
+            glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+            glVertexAttribPointer(loc_uv,  // location of attribute
+                              2,  // number of elements
+                              GL_FLOAT,  // type
+                              GL_FALSE,  // normalized?
+                              0,//sizeof(glm::vec2),  // stride
+                              (void*)0);  // offset
+        } else {
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+
+        //check colors
+        if (hasColor) {
+            glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+            glVertexAttribPointer(loc_color,
+                              4,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              0,//sizeof(glm::vec4),
+                              (void*)0);
+        } else {
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
     } else {
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
+        glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
+        // set pointers into the vbo for each of the attributes(position and color)
+        glVertexAttribPointer(loc_position,  // location of attribute
+                              3,  // number of elements
+                              GL_FLOAT,  // type
+                              GL_FALSE,  // normalized?
+                              0,//sizeof(glm::vec3),  // stride
+                              (void*)0);  // offset
 
-    //check for uvs
-    if (hasTex) {
-        glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-        glVertexAttribPointer(loc_uv,  // location of attribute
-                          2,  // number of elements
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          0,//sizeof(glm::vec2),  // stride
-                          (void*)0);  // offset
-    } else {
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    //check colors
-    if (hasColor) {
-        glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-        glVertexAttribPointer(loc_color,
-                          4,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          0,//sizeof(glm::vec4),
-                          (void*)0);
-    } else {
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
     }
 
     //draw elements

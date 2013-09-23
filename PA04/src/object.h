@@ -49,11 +49,12 @@ class Object {
     GLuint elementBuffer, geometryBuffer, normalBuffer, colorBuffer, textureBuffer;
     //reformat following to be by group ie: use indexing again?
     bool hasVert=false, hasTex=false, hasNorm = false, hasColor=false;
+    bool mixVert=true;//temp
     std::vector< glm::vec3 > vertices;
     std::vector< glm::vec2 > uvs;  // not used
     std::vector< glm::vec3 > normals;  // not used
     std::vector< glm::vec4 > colors;
-    std::vector< GLubyte > indices;
+    std::vector< int > indices;
     //need collection of material
     std::vector< mtl* > materials;
     //Mode of draw: vertex_arrays, elements
