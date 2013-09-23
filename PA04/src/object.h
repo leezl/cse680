@@ -45,20 +45,18 @@ struct mtl{
 
 class Object {
   private:
-    glm::mat4 model = glm::mat4(1.0f);
+    //glm::mat4 model = glm::mat4(1.0f);
     GLuint elementBuffer, geometryBuffer, normalBuffer, colorBuffer, textureBuffer;
     //reformat following to be by group ie: use indexing again?
-    bool hasVert=false, hasTex=false, hasNorm = false, hasColor=false;
-    bool mixVert=true;//temp
+    bool hasVert, hasTex, hasNorm, hasColor;
     std::vector< glm::vec3 > vertices;
     std::vector< glm::vec2 > uvs;  // not used
     std::vector< glm::vec3 > normals;  // not used
     std::vector< glm::vec4 > colors;
-    std::vector< int > indices;
+    std::vector< unsigned int > indices;
     //need collection of material
     std::vector< mtl* > materials;
     //Mode of draw: vertex_arrays, elements
-    int mode = 1;  // element vs array...need better way to store these
     GLenum ErrorCheckValue;
     
   public:

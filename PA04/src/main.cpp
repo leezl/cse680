@@ -33,6 +33,7 @@ struct Vertex {
 int w = 640, h = 480;  // Window size
 GLuint program;  // The GLSL program handle
 Object *whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
+GLuint vbo_geometry;
 
 // uniform locations
 GLint loc_mvpmat;  // Location of the modelviewprojection matrix in the shader
@@ -134,24 +135,7 @@ void render() {
 
     //enable attributes
     glEnableVertexAttribArray(loc_position);
-    glEnableVertexAttribArray(loc_color);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    // set pointers into the vbo for each of the attributes(position and color)
-    glVertexAttribPointer(loc_position,  // location of attribute
-                          3,  // number of elements
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          sizeof(glm::vertex3),  // stride
-                          0);  // offset
-
-    glVertexAttribPointer(loc_color,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          sizeof(glm::vertex3),
-                          0);
-
-    glDrawArrays(GL_TRIANGLES, 0, 36);  
+    glEnableVertexAttribArray(loc_color);  
 
     //draw object
     whatIsIt->drawObject(loc_position, 0, 0, loc_color);
@@ -175,10 +159,9 @@ void update() {
     static float rotAngle = 0.0;
     float dt = getDT(); 
     rotAngle += dt * 120.0;
-    view = glm::rotate(view, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Where params are: (initial matrix, angle, axis)
-    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+    //model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
     // Update the state of the scene
     glutPostRedisplay();  // call the display callback
@@ -247,12 +230,12 @@ bool initialize() {
         return false;
     }
 
-    /*loc_color = glGetAttribLocation(program,
+    loc_color = glGetAttribLocation(program,
                     const_cast<const char*>("v_color"));
     if ( loc_color == -1 ) {
         std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
         return false;
-    }*/
+    }
 
     loc_mvpmat = glGetUniformLocation(program,
                     const_cast<const char*>("mvpMatrix"));
@@ -267,7 +250,7 @@ bool initialize() {
     //  ...Like you should update it before you render more dynamic
     //  for this project having them static will be fine
     view = glm::lookAt(glm::vec3(0.0, 8.0, -16.0),  // Eye Position
-                       glm::vec3(0.0, 0.0, 0.0),  // Focus point
+                       glm::vec3(1.0,-1.0,-1.0),//glm::vec3(0.0, 0.0, 0.0),  // Focus point
                        glm::vec3(0.0, 1.0, 0.0));  // Positive Y is up
 
     projection = glm::perspective(45.0f,  // the FoV typically 90 degrees is good which is what this is set to
