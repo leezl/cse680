@@ -11,6 +11,7 @@ Copyright 2013 Liesl Wigand
 #include <typeinfo>  // debugger
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,7 +31,8 @@ struct Vertex {
 // Just for this example!
 int w = 640, h = 480;  // Window size
 GLuint program;  // The GLSL program handle
-GLuint vbo_geometry;  // VBO handle for our geometry
+GLuint vbo_geometry, elementBuffer;  // VBO handle for our geometry
+int elementSize = 0;
 
 // Why am I adding more Globals?
 bool rotateFlag = true;
@@ -149,7 +151,16 @@ void render() {
                           sizeof(Vertex),
                           (void*)offsetof(Vertex, color));
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
+    //glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    std::cout<<"Uses drawElements"<<std::endl;
+    // Draw the triangles !
+    glDrawElements(
+        GL_TRIANGLES,      // mode
+        elementSize,    // count
+        GL_UNSIGNED_INT,   // type
+        (void*)0           // element array buffer offset
+    );
 
     // clean up
     glDisableVertexAttribArray(loc_position);
@@ -270,10 +281,17 @@ bool initialize() {
                           {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
                           {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}}
                         };
+    std::vector<int> indices = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26};
+    elementSize = indices.size();
+
     // Create a Vertex Buffer object to store this vertex info on the GPU
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
     glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &elementBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
     // --Geometry done
 

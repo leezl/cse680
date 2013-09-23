@@ -144,15 +144,15 @@ void render() {
                           3,  // number of elements
                           GL_FLOAT,  // type
                           GL_FALSE,  // normalized?
-                          sizeof(Vertex),  // stride
+                          sizeof(glm::vertex3),  // stride
                           0);  // offset
 
     glVertexAttribPointer(loc_color,
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          sizeof(Vertex),
-                          (void*)offsetof(Vertex, color));
+                          sizeof(glm::vertex3),
+                          0);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
 
@@ -185,6 +185,7 @@ void render() {
     glDisableVertexAttribArray(loc_position);
     glDisableVertexAttribArray(loc_color);
     glUseProgram(0);
+    
     int lenghOfString = (int)strlen(rotDirStr);
     glRasterPos2f(0.0-0.9, 0.0+0.9);
     for ( int i = 0; i < lenghOfString; i++ ) {
