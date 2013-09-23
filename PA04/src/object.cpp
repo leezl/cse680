@@ -8,13 +8,22 @@ Liesl Wigand
 
 Object::Object(const char* filename){
     hasVert=hasTex=hasNorm=hasColor=false;
+    max[0] = max[1] = max[2] = -900;
+    min[0] = min[1] = min[2] = 900;
+    //loading object
     if (!loadObjectElementsColor(filename)){
         printf("Error Loading Object File.\n");
     }
-    max[0] = max[1] = max[2] = -900;
-    min[0] = min[1] = min[2] = 900;
-    //findCenter();
-    std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
+    /*std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
+    for (std::vector< glm::vec3 >::iterator it = vertices.begin(); it != vertices.end(); it++) {
+        //debug vertices
+        std::cout<<'('<<(*it)[0]<<','<<(*it)[1]<<','<<(*it)[2]<<") ";
+    }
+    std::cout<<std::endl;
+    for (std::vector<unsigned int>::iterator it=indices.begin(); it!=indices.end(); it++) {
+        std::cout<<(*it)<<',';
+    }
+    std::cout<<std::endl;*/
 }
 
 Object::~Object(){
@@ -28,23 +37,6 @@ void Object::cleanUp(){
     glDeleteBuffers(1, &colorBuffer);
     glDeleteBuffers(1, &textureBuffer);
 }
-
-/*void Object::findCenter(){
-    //COuld totally find this durring load for half the time wasted.
-    for ( std::vector< glm::vec3 >::iterator it=vertices.begin(); it!=vertices.end(); it++){
-        for (int i=0; i<3; i++) {
-            if ((*it)[i]>max[i]) {
-                max[i] = (*it)[i];
-            } 
-            if ((*it)[i]<min[i]) {
-                min[i] = (*it)[i];
-            } 
-        }
-    }
-    center[0] = (max[0]+min[0])/2.0;
-    center[1] = (max[1]+min[1])/2.0;
-    center[2] = (max[2]+min[2])/2.0;
-}*/
 
 void Object::checkError(){
     ErrorCheckValue = glGetError();
@@ -106,7 +98,6 @@ bool Object::loadObjectElementsColor(const char * path){
                     min[i] = vertex[i];
                 } 
             }
-
         } else if ( strcmp( lineHeader, "vt" ) == 0 ){
             glm::vec2 uv;
             fscanf(file, "%f %f\n", &uv.x, &uv.y );
@@ -134,16 +125,67 @@ bool Object::loadObjectElementsColor(const char * path){
             center[1] = (max[1]+min[1])/2.0;
             center[2] = (max[2]+min[2])/2.0;
             unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+            std::vector < unsigned int > vertexIndTemp;
+            std::vector < unsigned int > uvIndTemp;
+            std::vector < unsigned int > normalIndTemp;
             if (hasVert && hasNorm && hasTex ) {
-                int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
-                if (matches != 9){
-                    printf("Error parsing into v, vt and vn. \n");
-                    return false;
+                //generalize fscanf to read in arbitrary number of points
+                int matches = fscanf(file, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0]);
+                while ( matches > 0 ) {
+                    //store all the points found
+                    vertexIndTemp.push_back(vertexIndex[0]);
+                    uvIndTemp.push_back(uvIndex[0]);
+                    normalIndTemp.push_back(normalIndex[0]);
+                    matches = fscanf(file, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0]);
                 }
-                for ( int i=0; i<3; ++i ) {
-                    indexPoint.vertex = vertexIndex[i];
-                    indexPoint.uv = uvIndex[i];
-                    indexPoint.normal = normalIndex[i];
+            } else if (hasVert && hasNorm) {
+                //generalize fscanf to read in arbitrary number of points
+                int matches = fscanf(file, "%d//%d", &vertexIndex[0], &normalIndex[0]);
+                while ( matches > 0 ) {
+                    //store all the points found
+                    vertexIndTemp.push_back(vertexIndex[0]);
+                    uvIndTemp.push_back(-1);
+                    normalIndTemp.push_back(normalIndex[0]);
+                    matches = fscanf(file, "%d//%d", &vertexIndex[0], &normalIndex[0]);
+                }
+            } else if (hasVert && hasTex) {
+                //generalize fscanf to read in arbitrary number of points
+                int matches = fscanf(file, "%d/%d/", &vertexIndex[0], &uvIndex[0]);
+                while ( matches > 0 ) {
+                    //store all the points found
+                    vertexIndTemp.push_back(vertexIndex[0]);
+                    uvIndTemp.push_back(uvIndex[0]);
+                    normalIndTemp.push_back(-1);
+                    matches = fscanf(file, "%d/%d/", &vertexIndex[0], &uvIndex[0]);
+                }
+            } else {
+                int matches = fscanf(file, "%d", &vertexIndex[0]);
+                while ( matches > 0 ) {
+                    //store all the points found
+                    vertexIndTemp.push_back(vertexIndex[0]);
+                    uvIndTemp.push_back(-1);
+                    normalIndTemp.push_back(-1);
+                    matches = fscanf(file, "%d", &vertexIndex[0]);
+                }
+            }
+            //triangulate points into faces
+            assert ( vertexIndTemp.size()>=3 );
+            vertexIndex[0] = vertexIndTemp[0];
+            uvIndex[0] = uvIndTemp[0];
+            normalIndex[0] = normalIndTemp[0];
+            for (int i=1; i<vertexIndTemp.size()-1; i++){//check off by one here...
+                //create a face
+                vertexIndex[1] = vertexIndTemp[i];
+                uvIndex[1] = uvIndTemp[i];
+                normalIndex[1] = normalIndTemp[i];
+                vertexIndex[2] = vertexIndTemp[i+1];
+                uvIndex[2] = uvIndTemp[i+1];
+                normalIndex[2] = normalIndTemp[i+1];
+                //add the face
+                for (int j=0; j<3; j++) {
+                    indexPoint.vertex = vertexIndex[j];
+                    indexPoint.uv = uvIndex[j];
+                    indexPoint.normal = normalIndex[j];
                     indexPoint.color = matName;
                     unsigned int first = 0;
                     while (first < uniqueInd.size()) {
@@ -155,9 +197,13 @@ bool Object::loadObjectElementsColor(const char * path){
                     if ( first == uniqueInd.size() ) {
                         //add new values to all arrays
                         uniqueInd.push_back(indexPoint);
-                        vertices.push_back(temp_vertices[vertexIndex[i]-1]);
-                        uvs.push_back(temp_uvs[uvIndex[i]-1]);
-                        normals.push_back(temp_normals[normalIndex[i]-1]);
+                        vertices.push_back(temp_vertices[vertexIndex[j]-1]);
+                        if (hasTex) {
+                            uvs.push_back(temp_uvs[uvIndex[j]-1]);
+                        }
+                        if (hasNorm) {
+                            normals.push_back(temp_normals[normalIndex[j]-1]);
+                        }
                         //find correct color value later, for now store color name
                         temp_matName.push_back(matName);
                     }
@@ -170,79 +216,11 @@ bool Object::loadObjectElementsColor(const char * path){
                     // add points location to indices
                     indices.push_back(first);
                 }
-            } else if (hasVert && hasNorm) {
-                int matches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2], &normalIndex[2]);
-                if (matches != 6){
-                    printf("Error parsing into v, and vn. \n");
-                    return false;
-                }
-                for ( int i=0; i<3; ++i ) {
-                    indexPoint.vertex = vertexIndex[i];
-                    indexPoint.uv = -1;
-                    indexPoint.normal = normalIndex[i];
-                    indexPoint.color = matName;
-                    unsigned int first = 0;
-                    while (first < uniqueInd.size()) {
-                        if (uniqueInd[first].vertex==indexPoint.vertex && uniqueInd[first].normal==indexPoint.normal && 
-                            uniqueInd[first].uv==indexPoint.uv && uniqueInd[first].color.compare(indexPoint.color)==0) break;
-                        ++first;
-                    }
-                    //check if this combo is unique in indices; ie not in indices yet
-                    if ( first == uniqueInd.size() ) {
-                        uniqueInd.push_back(indexPoint);
-                        vertices.push_back(temp_vertices[vertexIndex[i]-1]);
-                        normals.push_back(temp_normals[normalIndex[i]-1]);
-                        //store color name temporarily
-                        temp_matName.push_back(matName);
-                    }
-                    first = 0;
-                    while (first < uniqueInd.size()) {
-                        if (uniqueInd[first].vertex==indexPoint.vertex && uniqueInd[first].normal==indexPoint.normal && 
-                            uniqueInd[first].uv==indexPoint.uv && uniqueInd[first].color.compare(indexPoint.color)==0) break;
-                        ++first;
-                    }
-                    // add points location to indices
-                    indices.push_back(first);
-                }
-            } else {
-                //sometimes no normals...
-                int matches = fscanf(file, "%d %d %d\n", &vertexIndex[0], &vertexIndex[1], &vertexIndex[2]);
-                if (matches != 3){
-                    printf("Error parsing into v. \n");
-                    return false;
-                }
-                for ( int i=0; i<3; ++i ) {
-                    indexPoint.vertex = vertexIndex[i];
-                    indexPoint.uv = -1;
-                    indexPoint.normal = -1;
-                    indexPoint.color = matName;
-                    //replace find with our own find version
-                    unsigned int first = 0;
-                    while (first < uniqueInd.size()) {
-                        if (uniqueInd[first].vertex==indexPoint.vertex && uniqueInd[first].normal==indexPoint.normal && 
-                            uniqueInd[first].uv==indexPoint.uv && uniqueInd[first].color.compare(indexPoint.color)==0) break;
-                        ++first;
-                    }
-                    //check if this combo is unique in indices; ie not in indices yet
-                    if ( first == uniqueInd.size() ) {
-                        uniqueInd.push_back(indexPoint);
-                        vertices.push_back(temp_vertices[vertexIndex[i]-1]);
-                        //store color name temporarily
-                        temp_matName.push_back(matName);
-                    }
-                    // add points location to indices
-                    indices.push_back(first);
-                }
             }
         }
     }
     fclose(file);
-    //Now: we have lists of unique vertices
-    //We have list of groups of vertices that make up a collection of faces
-    //We need vertex colors to be set based on diffuse (Kd)
-    //We need each uniques set to have its own index: so if v is matched 
-    //with three colors we'll need three of v
-    
+
     //load materials if there was one
     if ( materialFile.length() > 0 ) {
         materialFile.insert(0, "assets/models/");
@@ -262,7 +240,7 @@ bool Object::loadObjectElementsColor(const char * path){
         }
         if ( first == materials.end() ) {
             std::string tempColor = *it;
-            printf("Failed to find color: %s \n", tempColor.c_str());
+            printf("Failed to find color: %s . Using default.\n", tempColor.c_str());
             color[0] = 1.0;
             color[1] = 1.0;
             color[2] = 1.0;
@@ -281,9 +259,9 @@ bool Object::loadObjectElementsColor(const char * path){
 }
 
 void Object::initializeObject(){
-    std::cout<<"Initializing Object"<<std::endl;
+    //std::cout<<"Initializing Object"<<std::endl;
     //gen buffers
-    std::cout<<"Setting Element Buffer"<<std::endl;
+    //std::cout<<"Setting Element Buffer"<<std::endl;
     glEnableClientState(GL_VERTEX_ARRAY);
     //set element buffer data
     glGenBuffers(1, &elementBuffer);
@@ -294,7 +272,7 @@ void Object::initializeObject(){
 
     //set vertices
     if (hasVert) {
-        std::cout<<"Setting Vertex Buffer"<<std::endl;
+        //std::cout<<"Setting Vertex Buffer"<<std::endl;
         glGenBuffers(1, &geometryBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
@@ -302,7 +280,7 @@ void Object::initializeObject(){
     }
     //check for normals
     if (hasNorm) {
-        std::cout<<"Setting Normals Buffer"<<std::endl;
+        //std::cout<<"Setting Normals Buffer"<<std::endl;
         glGenBuffers(1, &normalBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
         glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
@@ -310,7 +288,7 @@ void Object::initializeObject(){
 
     //check for uvs
     if (hasTex) {
-        std::cout<<"Setting UVs Buffer"<<std::endl;
+        //std::cout<<"Setting UVs Buffer"<<std::endl;
         glGenBuffers(1, &textureBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
         glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
@@ -318,7 +296,7 @@ void Object::initializeObject(){
 
     //check colors
     if (hasColor) {
-        std::cout<<"Setting Colors Buffer"<<std::endl;
+        //std::cout<<"Setting Colors Buffer"<<std::endl;
         glGenBuffers(1, &colorBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
         glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STATIC_DRAW);
@@ -397,6 +375,7 @@ bool Object::loadMaterial(const char* filename){
     FILE * file = fopen(filename, "r");
     if( file == NULL ){
         printf("Impossible to open the file !\n");
+        exit(-1);
         return false;
     }
 
