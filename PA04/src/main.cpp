@@ -74,11 +74,19 @@ std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 int main(int argc, char **argv) {
     //need filename for object file...
     std::string filename;
-    std::cout<<"What's the name of the obj file? (assuming location in bin/assets/models/xxx.obj)";
-    std::cin>>filename;
+    if (argc<2) {
+        std::cerr<<"Wrong number of arguments. Backup Plan: cin. "<<std::endl;
+        std::cout<<"What's the name of the obj file? (include path and ext...) > ";
+        std::cin>>filename;
+    } else {
+        filename = argv[1];
+    }
+
+    //my default path and ext adder
     filename.insert(0, "assets/models/");
     filename.append(".obj");
-    std::cout<<filename<<std::endl;
+    std::cout<<"Loading "<<filename<<std::endl;
+    //BAD
     whatIsIt = new Object(filename.c_str());
 
     // Initialize glut

@@ -13,7 +13,8 @@ Object::Object(const char* filename){
     }
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
-    findCenter();
+    //findCenter();
+    std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
 }
 
 Object::~Object(){
@@ -28,7 +29,8 @@ void Object::cleanUp(){
     glDeleteBuffers(1, &textureBuffer);
 }
 
-void Object::findCenter(){
+/*void Object::findCenter(){
+    //COuld totally find this durring load for half the time wasted.
     for ( std::vector< glm::vec3 >::iterator it=vertices.begin(); it!=vertices.end(); it++){
         for (int i=0; i<3; i++) {
             if ((*it)[i]>max[i]) {
@@ -42,7 +44,7 @@ void Object::findCenter(){
     center[0] = (max[0]+min[0])/2.0;
     center[1] = (max[1]+min[1])/2.0;
     center[2] = (max[2]+min[2])/2.0;
-}
+}*/
 
 void Object::checkError(){
     ErrorCheckValue = glGetError();
@@ -96,6 +98,15 @@ bool Object::loadObjectElementsColor(const char * path){
             fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
             temp_vertices.push_back(vertex);
             hasVert = true;
+            for (int i=0; i<3; i++) {
+                if (vertex[i]>max[i]) {
+                    max[i] = vertex[i];
+                } 
+                if (vertex[i]<min[i]) {
+                    min[i] = vertex[i];
+                } 
+            }
+
         } else if ( strcmp( lineHeader, "vt" ) == 0 ){
             glm::vec2 uv;
             fscanf(file, "%f %f\n", &uv.x, &uv.y );
@@ -118,6 +129,10 @@ bool Object::loadObjectElementsColor(const char * path){
             fscanf(file, "%s\n", &tempMaterial);//if no mtl? try this later
             matName = tempMaterial;
         } else if ( strcmp( lineHeader, "f" ) == 0 ){
+            //have all vertices, grab center here
+            center[0] = (max[0]+min[0])/2.0;
+            center[1] = (max[1]+min[1])/2.0;
+            center[2] = (max[2]+min[2])/2.0;
             unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
             if (hasVert && hasNorm && hasTex ) {
                 int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
