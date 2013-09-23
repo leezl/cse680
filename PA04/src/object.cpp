@@ -9,23 +9,11 @@ Liesl Wigand
 Object::Object(const char* filename){
     hasVert=hasTex=hasNorm=hasColor=false;
     if (!loadObjectElementsColor(filename)){
-        printf("Error Loading Object File.");
+        printf("Error Loading Object File.\n");
     }
-    //temporarily remove load to test display
-    hasVert=true;
-    hasColor=true;
-    //crazy debugging:
-    std::cout<<"Vertices:"<<std::endl;
-    for (std::vector<glm::vec3>::iterator it = vertices.begin() ; it != vertices.end(); ++it)
-        std::cout << " (" << (*it)[0]<<','<<(*it)[1]<<','<<(*it)[2]<<") ";
-    std::cout<<std::endl<<"Colors:"<<std::endl;
-    for (std::vector<glm::vec4>::iterator it = colors.begin() ; it != colors.end(); ++it)
-        std::cout << " (" << (*it)[0]<<','<<(*it)[1]<<','<<(*it)[2]<<','<<(*it)[3]<<") ";
-    std::cout<<std::endl<<"Sizes: "<<vertices.size()<<' '<<colors.size()<<std::endl;
-    std::cout<<"Indices:"<<std::endl;
-    for (std::vector<unsigned int>::iterator it = indices.begin() ; it != indices.end(); ++it)
-        std::cout << ' ' << (*it);
-    std::cout<<std::endl;
+    max[0] = max[1] = max[2] = -900;
+    min[0] = min[1] = min[2] = 900;
+    findCenter();
 }
 
 Object::~Object(){
@@ -38,6 +26,35 @@ void Object::cleanUp(){
     glDeleteBuffers(1, &normalBuffer);
     glDeleteBuffers(1, &colorBuffer);
     glDeleteBuffers(1, &textureBuffer);
+}
+
+void Object::findCenter(){
+    for ( std::vector< glm::vec3 >::iterator it=vertices.begin(); it!=vertices.end(); it++){
+        for (int i=0; i<3; i++) {
+            if ((*it)[i]>max[i]) {
+                max[i] = (*it)[i];
+            } 
+            if ((*it)[i]<min[i]) {
+                min[i] = (*it)[i];
+            } 
+        }
+    }
+    center[0] = (max[0]+min[0])/2.0;
+    center[1] = (max[1]+min[1])/2.0;
+    center[2] = (max[2]+min[2])/2.0;
+}
+
+void Object::checkError(){
+    ErrorCheckValue = glGetError();
+    if (ErrorCheckValue != GL_NO_ERROR)
+    {
+        fprintf(
+            stderr,
+            "ERROR: Binding elementBuffer: %s \n",
+            gluErrorString(ErrorCheckValue)
+        );
+        exit(-1);
+    }
 }
 
 /*
@@ -55,7 +72,9 @@ bool Object::loadObjectElementsColor(const char * path){
     std::string materialFile = "";
     //char matName[128];
     std::string matName = "";
-    bool hasVert=false, hasTex =false, hasNorm = false;
+    hasVert=false;
+    hasTex =false;
+    hasNorm = false;
 
     FILE * file = fopen(path, "r");
     if( file == NULL ){
@@ -192,7 +211,6 @@ bool Object::loadObjectElementsColor(const char * path){
                     //check if this combo is unique in indices; ie not in indices yet
                     if ( first == uniqueInd.size() ) {
                         uniqueInd.push_back(indexPoint);
-                        std::cout<<typeid(temp_vertices[vertexIndex[i]-1]).name()<<std::endl;
                         vertices.push_back(temp_vertices[vertexIndex[i]-1]);
                         //store color name temporarily
                         temp_matName.push_back(matName);
@@ -244,9 +262,6 @@ bool Object::loadObjectElementsColor(const char * path){
         colors.push_back(color);
 
     }
-    hasTex = false;
-    hasNorm = false; //don't want to use these yet, hard coding removal for now
-    hasColor = false;
     return true;
 }
 
@@ -260,17 +275,7 @@ void Object::initializeObject(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
 
-    ErrorCheckValue = glGetError();
-    if (ErrorCheckValue != GL_NO_ERROR)
-    {
-        fprintf(
-            stderr,
-            "ERROR: Binding elementBuffer: %s \n",
-            gluErrorString(ErrorCheckValue)
-        );
-
-        exit(-1);
-    }
+    checkError();
 
     //set vertices
     if (hasVert) {
@@ -278,17 +283,7 @@ void Object::initializeObject(){
         glGenBuffers(1, &geometryBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-        ErrorCheckValue = glGetError();
-        if (ErrorCheckValue != GL_NO_ERROR)
-        {
-            fprintf(
-                stderr,
-                "ERROR: Binding vertex buffer: %s \n",
-                gluErrorString(ErrorCheckValue)
-            );
-
-            exit(-1);
-        }
+        checkError();
     }
     //check for normals
     if (hasNorm) {
@@ -312,31 +307,11 @@ void Object::initializeObject(){
         glGenBuffers(1, &colorBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
         glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STATIC_DRAW);
-        ErrorCheckValue = glGetError();
-        if (ErrorCheckValue != GL_NO_ERROR)
-        {
-            fprintf(
-                stderr,
-                "ERROR: Binding color buffer: %s \n",
-                gluErrorString(ErrorCheckValue)
-            );
-
-            exit(-1);
-        }
+        checkError();
     }
 
     //error checker (GLU)
-    ErrorCheckValue = glGetError();
-    if (ErrorCheckValue != GL_NO_ERROR)
-    {
-        fprintf(
-            stderr,
-            "ERROR: Could not create a VBO: %s \n",
-            gluErrorString(ErrorCheckValue)
-        );
-
-        exit(-1);
-    }
+    checkError();
 }
 
 void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLint loc_color){
@@ -350,19 +325,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLin
                           GL_FALSE,  // normalized?
                           0,//sizeof(glm::vec3),  // stride
                           (void*)0);  // offset
-    ErrorCheckValue = glGetError();
-    if (ErrorCheckValue != GL_NO_ERROR)
-    {
-        fprintf(
-            stderr,
-            "ERROR: vertex buffer and location attribute: %s \n",
-            gluErrorString(ErrorCheckValue)
-        );
-
-        exit(-1);
-    }
-
-    //glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
+    checkError();
 
     //check for normals
     if (hasNorm) {
@@ -399,59 +362,17 @@ void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLin
                           GL_FALSE,
                           0,//sizeof(glm::vec4),
                           (void*)0);
-        ErrorCheckValue = glGetError();
-        if (ErrorCheckValue != GL_NO_ERROR)
-        {
-            fprintf(
-                stderr,
-                "ERROR: colorBuffer and color attribute: %s \n",
-                gluErrorString(ErrorCheckValue)
-            );
-
-            exit(-1);
-        }
+        checkError();
     } else {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     //draw elements
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-    ErrorCheckValue = glGetError();
-    if (ErrorCheckValue != GL_NO_ERROR)
-    {
-        fprintf(
-            stderr,
-            "ERROR: Bidning element buffer: %s \n",
-            gluErrorString(ErrorCheckValue)
-        );
-
-        exit(-1);
-    }
+    checkError();
 
     glDrawElements(GL_TRIANGLES, indices.size(),  GL_UNSIGNED_INT, (void*)0);
-    ErrorCheckValue = glGetError();
-    if (ErrorCheckValue != GL_NO_ERROR)
-    {
-        fprintf(
-            stderr,
-            "ERROR: Drawing Elements: %s \n",
-            gluErrorString(ErrorCheckValue)
-        );
-
-        exit(-1);
-    }
-
-    ErrorCheckValue = glGetError();
-    if (ErrorCheckValue != GL_NO_ERROR)
-    {
-        fprintf(
-            stderr,
-            "ERROR: Could not create a VBO: %s \n",
-            gluErrorString(ErrorCheckValue)
-        );
-
-        exit(-1);
-    }
+    checkError();
 }
 
 bool Object::loadMaterial(const char* filename){

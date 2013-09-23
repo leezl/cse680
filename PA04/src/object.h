@@ -58,15 +58,20 @@ class Object {
     std::vector< mtl* > materials;
     //Mode of draw: vertex_arrays, elements
     GLenum ErrorCheckValue;
+    void checkError();
+    bool loadMaterial(const char* filename);
+    bool loadObjectElementsColor(const char * path);
+    void findCenter();
     
   public:
     Object(const char* filename);
     ~Object();
-    bool loadObjectElementsColor(const char * path);
-    bool loadMaterial(const char* filename);
     void initializeObject();
     void cleanUp();
     void drawObject(GLint, GLint, GLint, GLint);
+    float center[3];
+    float max[3];
+    float min[3];
 };
 
 #endif  // OBJECT_H_

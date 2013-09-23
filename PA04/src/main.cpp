@@ -249,8 +249,10 @@ bool initialize() {
     // the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic
     //  for this project having them static will be fine
+    //Look at center of object:
+    glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
     view = glm::lookAt(glm::vec3(0.0, 8.0, -16.0),  // Eye Position
-                       glm::vec3(1.0,-1.0,-1.0),//glm::vec3(0.0, 0.0, 0.0),  // Focus point
+                       center,//glm::vec3(0.0, 0.0, 0.0),  // Focus point
                        glm::vec3(0.0, 1.0, 0.0));  // Positive Y is up
 
     projection = glm::perspective(45.0f,  // the FoV typically 90 degrees is good which is what this is set to

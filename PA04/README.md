@@ -1,22 +1,15 @@
 Project 04: Blender and Model Loading
 ========================================
-This project is based on the previous Project, PA03.
-    
-CONTROLS:    
-Right Click: brings up menu: Start/Stop Spin and Quit    
-Left Click: Reverses Spin    
-Up Arrow/D: Increases Spin Speed    
-Down Arrow/A: Decreases Spin Speed (can go negative)    
-Left Arrow: Spins left    
-Right Arrow: Spins right    
-Space/S: Reverses Spin    
+This project is based on the previous Project, PA03.   
+
+Current reads in the filename with cin...probably get to chaning that before turn in.
     
 The assigned alterations are to add the following:    
 1.) Create a model in Blender and export the OBJ file.    
 2.) Model Loading: Write a model loader that can load your OBJ from Part 1 into your program.    
     
-Should have added:    
-An object class for storing the model matrices, buffer indices, and display stuff.    
+SO...the program tries to point the camera at the object wherever it is. But it doesn't back up at the moment (ie the camera may appear inside the object).   
+The object class tries to handle loading storing, and drawing the object. Kind of inefficient.
     
 The following is still true:    
     
