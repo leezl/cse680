@@ -2,14 +2,18 @@ Project 04: Blender and Model Loading
 ========================================
 This project is based on the previous Project, PA03.   
 
-Current reads in the filename with cin...probably get to chaning that before turn in.
+CONTROLS:    
+Space: stops spinning of object
+a, d: change speed of spinning object
+m: camera gets closer to object
+n: camera gets farther from object
+
+Should be able to handle loading triangles and soem polygons. No fancy shading and a default color if no mtl is loaded. Does not use normals or uvs, though it does handle cases when they are present or not.
+ALSO: I'm using a GLU error check, in case that gives any problems.
     
 The assigned alterations are to add the following:    
 1.) Create a model in Blender and export the OBJ file.    
 2.) Model Loading: Write a model loader that can load your OBJ from Part 1 into your program.    
-    
-SO...the program tries to point the camera at the object wherever it is. But it doesn't back up at the moment (ie the camera may appear inside the object).   
-The object class tries to handle loading storing, and drawing the object. Kind of inefficient.
     
 The following is still true:    
     

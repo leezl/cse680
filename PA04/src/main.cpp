@@ -34,6 +34,9 @@ int w = 640, h = 480;  // Window size
 GLuint program;  // The GLSL program handle
 Object *whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
 GLuint vbo_geometry;
+float rotationSpeed = 120.0;
+bool rotateFlag = true;
+float dist = -16.0;
 
 // uniform locations
 GLint loc_mvpmat;  // Location of the modelviewprojection matrix in the shader
@@ -166,10 +169,18 @@ P02: check a flag for rotation
 void update() {
     static float rotAngle = 0.0;
     float dt = getDT(); 
-    rotAngle += dt * 120.0;
+    if ( rotateFlag ) {
+      rotAngle += dt * rotationSpeed;  // this is degrees
+    }
 
-    // Where params are: (initial matrix, angle, axis)
-    //model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+    //move object
+    model = glm::rotate(glm::mat4(1.0f), rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    //move view...
+    glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
+    view = glm::lookAt(glm::vec3(0.0, 8.0, dist),  // Eye Position
+                       center,//glm::vec3(0.0, 0.0, 0.0),  // Focus point
+                       glm::vec3(0.0, 1.0, 0.0));  // Positive Y is up
 
     // Update the state of the scene
     glutPostRedisplay();  // call the display callback
@@ -192,8 +203,21 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
     case 27:  // ESC
       exit(0);
       break;  // why is this necessary...
-    case 'a':
-
+    case 97:  // a
+      rotationSpeed -= 10.0;
+      break;
+    case 100:  // d
+      rotationSpeed += 10.0;
+      break;
+    case 32:
+      rotateFlag = !rotateFlag;
+      break;
+    case 109:
+      dist+=2.0;
+      break;
+    case 110:
+      dist-=2.0;
+      break;
     default:
       break;
     }
