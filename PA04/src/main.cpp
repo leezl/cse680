@@ -88,6 +88,15 @@ int main(int argc, char **argv) {
     //my default path and ext adder
     //filename.insert(0, "assets/models/");
     //filename.append(".obj");
+    //parse into file and path; assume path is also used for mtl
+    //std::size_t found = filename.find('/');
+    //std::size_t path = 0;
+    //while ( found != std::string::npos) {
+    //    path=found; //grab old end of path
+    //    found  = filename.find('/'); //find next directory
+    //}
+    //path = filename.substr(0, path);
+    //std::cout<<path<<std::endl;
     std::cout<<"Loading "<<filename<<std::endl;
     //BAD
     whatIsIt = new Object(filename.c_str());
