@@ -1,7 +1,13 @@
 Project 04: Blender and Model Loading
 ========================================
 This project is based on the previous Project, PA03.   
-
+    
+IMPORTANT: This program assumes you are providing the path, name and extension of the obj file.    
+Also assumes the path in the obj file to the materials is correct. It used to hard code the path separately:   
+"assets/models/"+file+".obj" and "assets/models/"+material   
+But this was removed since that directory does not exist. So. If a material is just a filename, no path,   
+it must be in the same location as the executable.   
+   
 CONTROLS:    
 Space: stops spinning of object
 a, d: change speed of spinning object
