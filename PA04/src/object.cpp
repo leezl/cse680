@@ -63,7 +63,8 @@ bool Object::loadObjectElementsColor(const char * path){
     indexSet indexPoint;
     glm::vec4 color;
     //char materialFile[128];
-    std::string materialFile = "";
+    std::vector< std::string > materialFile;
+    //std::string materialFile = "";
     //char matName[128];
     std::string matName = "";
     hasVert=false;
@@ -113,7 +114,7 @@ bool Object::loadObjectElementsColor(const char * path){
             // Store mtl file name for loading at end of this
             hasColor = true;
             fscanf(file, "%s\n", &tempMaterial);
-            materialFile = tempMaterial;
+            materialFile.push_back(tempMaterial);
         } else if( strcmp( lineHeader, "usemtl" ) == 0 ){
             char tempMaterial[128];
             // add material to color list
@@ -221,13 +222,15 @@ bool Object::loadObjectElementsColor(const char * path){
     }
     fclose(file);
 
-    //load materials if there was one
-    if ( materialFile.length() > 0 ) {
-        materialFile.insert(0, "assets/models/");
-        bool materialLoaded = loadMaterial(materialFile.c_str());
-        if ( materialLoaded == false ) {
-            printf("Loading material failed. \n");
-            return false;
+    //load materials if there was a file
+    if ( materialFile.size() > 0 ) {
+        for ( std::vector< std::string >::iterator it = materialFile.begin(); it!=materialFile.end(); it++) {
+            //(*it).insert(0, "assets/models/");//BAD
+            bool materialLoaded = loadMaterial((*it).c_str());
+            if ( materialLoaded == false ) {
+                printf("Loading material %s failed. \n", (*it).c_str());
+                return false;
+            }
         }
     }
     //now we need to go through temp_matName, and load each into colors
@@ -240,10 +243,10 @@ bool Object::loadObjectElementsColor(const char * path){
         }
         if ( first == materials.end() ) {
             std::string tempColor = *it;
-            printf("Failed to find color: %s . Using default.\n", tempColor.c_str());
-            color[0] = 1.0;
-            color[1] = 1.0;
-            color[2] = 1.0;
+            printf("Failed to find color %s . Using default.\n", tempColor.c_str());
+            color[0] = 0.9;
+            color[1] = 0.9;
+            color[2] = 0.9;
             color[3] = 1.0;
         } else {
             //have

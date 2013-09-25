@@ -86,8 +86,8 @@ int main(int argc, char **argv) {
     }
 
     //my default path and ext adder
-    filename.insert(0, "assets/models/");
-    filename.append(".obj");
+    //filename.insert(0, "assets/models/");
+    //filename.append(".obj");
     std::cout<<"Loading "<<filename<<std::endl;
     //BAD
     whatIsIt = new Object(filename.c_str());
