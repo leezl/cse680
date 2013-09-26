@@ -59,12 +59,12 @@ class Object {
     //Mode of draw: vertex_arrays, elements
     GLenum ErrorCheckValue;
     void checkError();
-    bool loadMaterial(const char* filename);
-    bool loadObjectElementsColor(const char * path);
+    bool loadMaterial(std::string filename);
+    bool loadObjectElementsColor(std::string path, std::string filename);
     void findCenter();
     
   public:
-    Object(const char* filename);
+    Object(std::string path, std::string filename);
     ~Object();
     void initializeObject();
     void cleanUp();

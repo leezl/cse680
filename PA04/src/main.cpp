@@ -35,8 +35,10 @@ GLuint program;  // The GLSL program handle
 Object *whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
 GLuint vbo_geometry;
 float rotationSpeed = 120.0;
-bool rotateFlag = true;
-float dist = -16.0;
+bool rotateFlag=true;
+float scaler = 1.0;
+float dist = -12.0;
+float height = 6.0;
 
 // uniform locations
 GLint loc_mvpmat;  // Location of the modelviewprojection matrix in the shader
@@ -60,6 +62,7 @@ void render();
 void update();
 void reshape(int n_w, int n_h);
 void keyboard(unsigned char key, int x_pos, int y_pos);
+void arrow_keys(int key, int x, int y);
 
 // --Resource management
 bool initialize();
@@ -77,6 +80,7 @@ std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 int main(int argc, char **argv) {
     //need filename for object file...
     std::string filename;
+    std::string path;
     if (argc<2) {
         std::cerr<<"Wrong number of arguments. Backup Plan: cin. "<<std::endl;
         std::cout<<"What's the name of the obj file? (include path and ext...) > ";
@@ -89,17 +93,17 @@ int main(int argc, char **argv) {
     //filename.insert(0, "assets/models/");
     //filename.append(".obj");
     //parse into file and path; assume path is also used for mtl
-    //std::size_t found = filename.find('/');
-    //std::size_t path = 0;
-    //while ( found != std::string::npos) {
-    //    path=found; //grab old end of path
-    //    found  = filename.find('/'); //find next directory
-    //}
-    //path = filename.substr(0, path);
-    //std::cout<<path<<std::endl;
+    std::size_t found = filename.find("/");
+    std::size_t mid = 0;
+    while ( found != std::string::npos) {
+        mid = found; //grab old end of path
+        found  = filename.find("/", mid+1); //find next directory
+    }
+    path = filename.substr(0, mid);
+    std::cout<<"Path: "<<path<<std::endl;
+
     std::cout<<"Loading "<<filename<<std::endl;
-    //BAD
-    whatIsIt = new Object(filename.c_str());
+    whatIsIt = new Object(path+"/", filename);
 
     // Initialize glut
     glutInit(&argc, argv);
@@ -123,6 +127,7 @@ int main(int argc, char **argv) {
     glutReshapeFunc(reshape);  // Called if the window is resized
     glutIdleFunc(update);  // Called if there is nothing else to do
     glutKeyboardFunc(keyboard);  // Called if there is keyboard input
+    glutSpecialFunc(arrow_keys);
 
     // Initialize all of our resources(shaders, geometry)
     bool init = initialize();
@@ -183,11 +188,12 @@ void update() {
     }
 
     //move object
-    model = glm::rotate(glm::mat4(1.0f), rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::scale(glm::mat4(1.0f), glm::vec3(scaler, scaler, scaler));
+    model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     //move view...
     glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
-    view = glm::lookAt(glm::vec3(0.0, 8.0, dist),  // Eye Position
+    view = glm::lookAt(glm::vec3(0.0, height, dist),  // Eye Position
                        center,//glm::vec3(0.0, 0.0, 0.0),  // Focus point
                        glm::vec3(0.0, 1.0, 0.0));  // Positive Y is up
 
@@ -221,15 +227,35 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
     case 32:
       rotateFlag = !rotateFlag;
       break;
-    case 109:
-      dist+=2.0;
-      break;
-    case 110:
-      dist-=2.0;
-      break;
+    case 115://s
+       scaler -= 0.1;
+       break;
+    case 83:
+       scaler +=0.1;
+       break;
     default:
       break;
     }
+}
+
+void arrow_keys(int key, int x, int y) {
+  // x and y are mouse position: how can we use this?
+  switch (key) {
+    case GLUT_KEY_UP:
+      height += 1.0;
+      break;
+    case GLUT_KEY_DOWN:
+      height -= 1.0;
+      break;
+    case GLUT_KEY_LEFT:
+      dist += 1.0;
+      break;
+    case GLUT_KEY_RIGHT:
+      dist -= 1.0;
+      break;
+    }
+  glutPostRedisplay();
+  return;
 }
 
 bool initialize() {
@@ -292,7 +318,10 @@ bool initialize() {
     //  for this project having them static will be fine
     //Look at center of object:
     glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
-    view = glm::lookAt(glm::vec3(0.0, 8.0, -16.0),  // Eye Position
+    glm::vec3 max = glm::vec3(whatIsIt->max[0], whatIsIt->max[1], whatIsIt->max[2]);
+    dist = max[2]+1.0;
+    height = max[1]+1.0;
+    view = glm::lookAt(glm::vec3(0.0, height, dist),  // Eye Position
                        center,//glm::vec3(0.0, 0.0, 0.0),  // Focus point
                        glm::vec3(0.0, 1.0, 0.0));  // Positive Y is up
 

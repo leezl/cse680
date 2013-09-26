@@ -3,16 +3,17 @@ Project 04: Blender and Model Loading
 This project is based on the previous Project, PA03.   
     
 IMPORTANT: This program assumes you are providing the path, name and extension of the obj file.    
-Also assumes the path in the obj file to the materials is correct. It used to hard code the path separately:   
-"assets/models/"+file+".obj" and "assets/models/"+material   
-But this was removed since that directory does not exist. So. If a material is just a filename, no path,   
-it must be in the same location as the executable.   
+Also assumes the path for the obj is the same as for the mtl. It pulls the path off and adds it to the material file name read from the obj. So obj and mtl should be in the same folder, or the path from the obj to the mtl should be in the filename in the obj.
    
-CONTROLS:    
-Space: stops spinning of object
-a, d: change speed of spinning object
-m: camera gets closer to object
-n: camera gets farther from object
+CONTROLS:     
+Space: stops spinning of object    
+a, d: change speed of spinning object    
+left arrow: camera gets closer to object    
+right arrow: camera gets farther from object    
+up arrow: raises camera    
+down arrow: lower camera    
+s: scale object down    
+S: scales object up    
 
 Should be able to handle loading triangles and soem polygons. No fancy shading and a default color if no mtl is loaded. Does not use normals or uvs, though it does handle cases when they are present or not.
 ALSO: I'm using a GLU error check, in case that gives any problems.

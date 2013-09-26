@@ -6,12 +6,12 @@ Liesl Wigand
 */
 #include "object.h"
 
-Object::Object(const char* filename){
+Object::Object(std::string path, std::string filename){
     hasVert=hasTex=hasNorm=hasColor=false;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
     //loading object
-    if (!loadObjectElementsColor(filename)){
+    if (!loadObjectElementsColor(path, filename)){
         printf("Error Loading Object File.\n");
     }
     /*std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
@@ -54,7 +54,7 @@ void Object::checkError(){
 /*
 This version of load loads each vertex once, and uses draw_elements
 */
-bool Object::loadObjectElementsColor(const char * path){
+bool Object::loadObjectElementsColor(std::string path, std::string filename){
     std::vector< glm::vec3 > temp_vertices;
     std::vector< glm::vec2 > temp_uvs;
     std::vector< glm::vec3 > temp_normals;
@@ -71,9 +71,9 @@ bool Object::loadObjectElementsColor(const char * path){
     hasTex =false;
     hasNorm = false;
 
-    FILE * file = fopen(path, "r");
+    FILE * file = fopen(filename.c_str(), "r");
     if( file == NULL ){
-        printf("Impossible to open the file !\n");
+        printf("Impossible to open the object file %s!\n", filename.c_str());
         return false;
     }
 
@@ -226,7 +226,7 @@ bool Object::loadObjectElementsColor(const char * path){
     if ( materialFile.size() > 0 ) {
         for ( std::vector< std::string >::iterator it = materialFile.begin(); it!=materialFile.end(); it++) {
             //(*it).insert(0, "assets/models/");//BAD
-            bool materialLoaded = loadMaterial((*it).c_str());
+            bool materialLoaded = loadMaterial(path+(*it));
             if ( materialLoaded == false ) {
                 printf("Loading material %s failed. \n", (*it).c_str());
                 return false;
@@ -371,13 +371,13 @@ void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLin
     checkError();
 }
 
-bool Object::loadMaterial(const char* filename){
+bool Object::loadMaterial(std::string filename){
     mtl *currentMaterial;
     bool hasMat = false;
 
-    FILE * file = fopen(filename, "r");
+    FILE * file = fopen(filename.c_str(), "r");
     if( file == NULL ){
-        printf("Impossible to open the file !\n");
+        printf("Impossible to open the %s material file !\n",filename.c_str());
         exit(-1);
         return false;
     }
