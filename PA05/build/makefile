@@ -1,8 +1,12 @@
 
-CC=g++
+CC= g++
 CXXFLAGS= -g -Wall -std=c++0x
 CXXO= -c 
-LIBS= -lglut -lGLEW -lGL -lGLU
+LIBS= -lglut -lGLEW -lGL -lGLU -lassimp
+LIBDIR= -L/usr/local/lib/
+#-L../../assimp3.0.1270-sdk/lib/
+#ASSIMP = ./usr/local/include/assimp#?
+#ASSIMPLIB = /usr/local/lib/libassimp.so#?
 SOURCES= ../src/shader.cpp ../src/main.cpp
 DEPS = ../src/shader.h
 OBJECTS=$(SOURCES:.cpp=.o)
@@ -12,7 +16,7 @@ RM= /bin/rm -f
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): shader.o object.o main.o
-	$(CC) $(CXXFLAGS) object.o shader.o main.o -o $(EXECUTABLE) $(LIBS)
+	$(CC) $(CXXFLAGS) object.o shader.o main.o -o $(EXECUTABLE) $(LIBDIR) $(LIBS)
 
 main.o: ../src/main.cpp ../src/shader.h
 	$(CC) $(CXXO) $(CXXFLAGS) ../src/main.cpp -o main.o

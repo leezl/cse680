@@ -11,9 +11,15 @@ Object::Object(std::string path, std::string filename){
     loadUV=loadNorm=false;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
+    center[0]=center[1]=center[2] = 0;
     //loading object
-    if (!loadObjectElementsColor(path, filename)){
+    /*if (!loadObjectElementsColor(path, filename)){
         printf("Error Loading Object File.\n");
+        exit(-1);
+    }*/
+    if ( !loadAssImp(filename) ) {
+        printf("Error Loading Object File with Assimp.\n");
+        exit(-1);
     }
     /*std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
     for (std::vector< glm::vec3 >::iterator it = vertices.begin(); it != vertices.end(); it++) {
@@ -50,6 +56,95 @@ void Object::checkError(){
         );
         exit(-1);
     }
+}
+
+/*
+Function for loading using Assimp. WIP
+*/
+bool Object::loadAssImp(std::string path){
+    //need assimp importer
+    Assimp::Importer importer;
+
+    // read file into scene object
+    // possible flags:
+    // aiProcess_JoinIdenticalVertices | aiProcess_Triangulate (others probably not needed)
+    const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
+    //check if it worked:
+    if( !scene) {
+        fprintf( stderr, importer.GetErrorString());
+        return false;
+    }
+    //are we assuming .obj? then folowing is ok, otherwise need loop 
+    const aiMesh* mesh = scene->mMeshes[0];
+
+    //grab vertices
+    //Reserve: better then just push_back, sizes the vector exactly instead of doubling and hoping.
+    //HasPositions?
+    vertices.reserve(mesh->mNumVertices);
+    for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+        aiVector3D pos = mesh->mVertices[i];
+        vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
+        if (pos.x>max[0]) {
+            max[0] = pos.x;
+        } else if ( pos.x<min[0] ) {
+            min[0] = pos.x;
+        }
+        if (pos.y>max[1]) {
+            max[1] = pos.y;
+        }else if ( pos.y<min[1] ) {
+            min[1] = pos.y;
+        }
+        if (pos.z>max[2]) {
+            max[2] = pos.z;
+        }else if ( pos.z<min[2] ) {
+            min[2] = pos.z;
+        }
+    }
+
+    //grab uvs
+    if ( 0 < mesh->GetNumUVChannels() ) {
+        uvs.reserve(mesh->mNumVertices);
+        for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+            aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
+            uvs.push_back(glm::vec2(UVW.x, UVW.y));
+        }
+    }
+
+    //grab normals
+    if ( mesh->HasNormals() ) {
+        normals.reserve(mesh->mNumVertices);
+        for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+            aiVector3D n = mesh->mNormals[i];
+            normals.push_back(glm::vec3(n.x, n.y, n.z));
+        }
+    }
+
+    //COLOR? is it separate or are the vertices auto paired with the diffuse color?
+    //check if color exists: index value should be...?
+    //mesh->HasVertexColors(0) | mesh->GetNumColorChannels()
+    if ( 0 < mesh->GetNumColorChannels() ) {
+        colors.reserve(mesh->mNumVertices);
+        for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+            //only use first set...cause we have no idea why there are more yet...
+            aiColor4D c = mesh->mColors[0][i];
+            colors.push_back(glm::vec4(c.r, c.g, c.b, c.a));
+        }
+    }
+
+    //grab indices
+    //3 vertices per face: 3*numFaces
+    if ( mesh->HasFaces() ) {
+        indices.reserve(3*mesh->mNumFaces);
+        for (unsigned int i=0; i<mesh->mNumFaces; i++) {
+            // The model should be all triangle since we triangulated
+            indices.push_back(mesh->mFaces[i].mIndices[0]);
+            indices.push_back(mesh->mFaces[i].mIndices[1]);
+            indices.push_back(mesh->mFaces[i].mIndices[2]);
+        }
+    }
+
+    //assume all's well if we make it here
+    return true;
 }
 
 /*

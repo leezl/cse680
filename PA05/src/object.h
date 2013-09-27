@@ -11,6 +11,11 @@ Delete other load Funcitons when done picking one
 #include <typeinfo>
 #include <GL/glew.h>  // glew must be included before the main gl libs
 #include <GL/glut.h>  // doing otherwise causes compiler shouting
+// Include AssImp
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+//Include glm
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -61,6 +66,11 @@ class Object {
     void checkError();
     bool loadMaterial(std::string filename);
     bool loadObjectElementsColor(std::string path, std::string filename);
+    bool loadAssImp(std::string path);
+    // , std::vector<unsigned short> & indices,
+    //std::vector<glm::vec3> & vertices,
+    //std::vector<glm::vec2> & uvs,
+    //std::vector<glm::vec3> & normals)
     void findCenter();
     
   public:
