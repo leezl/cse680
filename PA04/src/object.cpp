@@ -8,6 +8,7 @@ Liesl Wigand
 
 Object::Object(std::string path, std::string filename){
     hasVert=hasTex=hasNorm=hasColor=false;
+    loadUV=loadNorm=false;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
     //loading object
@@ -100,15 +101,19 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                 } 
             }
         } else if ( strcmp( lineHeader, "vt" ) == 0 ){
-            glm::vec2 uv;
-            fscanf(file, "%f %f\n", &uv.x, &uv.y );
-            temp_uvs.push_back(uv);
-            hasTex = true;
+            if (loadUV==true) {
+                glm::vec2 uv;
+                fscanf(file, "%f %f\n", &uv.x, &uv.y );
+                temp_uvs.push_back(uv);
+                hasTex = true;
+            }
         } else if ( strcmp( lineHeader, "vn" ) == 0 ){
-            glm::vec3 normal;
-            fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
-            temp_normals.push_back(normal);
-            hasNorm = true;
+            if (loadNorm==true) {
+                glm::vec3 normal;
+                fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
+                temp_normals.push_back(normal);
+                hasNorm = true;
+            }
         } else if ( strcmp( lineHeader, "mtllib" ) == 0){
             char tempMaterial[128];
             // Store mtl file name for loading at end of this
@@ -188,16 +193,38 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                     indexPoint.uv = uvIndex[j];
                     indexPoint.normal = normalIndex[j];
                     indexPoint.color = matName;
-                    unsigned int first = 0;
-                    while (first < uniqueInd.size()) {
-                        if (uniqueInd[first].vertex==indexPoint.vertex && uniqueInd[first].normal==indexPoint.normal && 
-                            uniqueInd[first].uv==indexPoint.uv && uniqueInd[first].color.compare(indexPoint.color)==0) break;
-                        ++first;
-                    }
-                    //check if this combo is unique in indices; ie not in indices yet
-                    if ( first == uniqueInd.size() ) {
-                        //add new values to all arrays
-                        uniqueInd.push_back(indexPoint);
+                    //only do this stuff if model is small otherwise takes forever...
+                    if (temp_vertices.size()<100000) {
+                        unsigned int first = 0;
+                        while (first < uniqueInd.size()) {
+                            if (uniqueInd[first].vertex==indexPoint.vertex && uniqueInd[first].normal==indexPoint.normal && 
+                                uniqueInd[first].uv==indexPoint.uv && uniqueInd[first].color.compare(indexPoint.color)==0) break;
+                            ++first;
+                        }
+                        //check if this combo is unique in indices; ie not in indices yet
+                        if ( first == uniqueInd.size() ) {
+                            //add new values to all arrays
+                            uniqueInd.push_back(indexPoint);
+                            vertices.push_back(temp_vertices[vertexIndex[j]-1]);
+                            if (hasTex) {
+                                uvs.push_back(temp_uvs[uvIndex[j]-1]);
+                            }
+                            if (hasNorm) {
+                                normals.push_back(temp_normals[normalIndex[j]-1]);
+                            }
+                            //find correct color value later, for now store color name
+                            temp_matName.push_back(matName);
+                        }
+                        first = 0;
+                        while (first < uniqueInd.size()) {
+                            if (uniqueInd[first].vertex==indexPoint.vertex && uniqueInd[first].normal==indexPoint.normal && 
+                                uniqueInd[first].uv==indexPoint.uv && uniqueInd[first].color.compare(indexPoint.color)==0) break;
+                            ++first;
+                        }
+                        // add points location to indices
+                        indices.push_back(first);
+                    } else {//vertex 0 1 and 2 
+                        //just add vertice and indices
                         vertices.push_back(temp_vertices[vertexIndex[j]-1]);
                         if (hasTex) {
                             uvs.push_back(temp_uvs[uvIndex[j]-1]);
@@ -207,15 +234,8 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                         }
                         //find correct color value later, for now store color name
                         temp_matName.push_back(matName);
+                        indices.push_back(vertexIndex[j]-1);
                     }
-                    first = 0;
-                    while (first < uniqueInd.size()) {
-                        if (uniqueInd[first].vertex==indexPoint.vertex && uniqueInd[first].normal==indexPoint.normal && 
-                            uniqueInd[first].uv==indexPoint.uv && uniqueInd[first].color.compare(indexPoint.color)==0) break;
-                        ++first;
-                    }
-                    // add points location to indices
-                    indices.push_back(first);
                 }
             }
         }
@@ -243,7 +263,9 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
         }
         if ( first == materials.end() ) {
             std::string tempColor = *it;
-            printf("Failed to find color %s . Using default.\n", tempColor.c_str());
+            if (vertices.size()<100000) {
+                printf("Failed to find color %s . Using default.\n", tempColor.c_str());
+            }
             color[0] = 0.9;
             color[1] = 0.9;
             color[2] = 0.9;

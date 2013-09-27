@@ -48,7 +48,7 @@ class Object {
     //glm::mat4 model = glm::mat4(1.0f);
     GLuint elementBuffer, geometryBuffer, normalBuffer, colorBuffer, textureBuffer;
     //reformat following to be by group ie: use indexing again?
-    bool hasVert, hasTex, hasNorm, hasColor;
+    bool hasVert, hasTex, hasNorm, hasColor, loadUV, loadNorm;
     std::vector< glm::vec3 > vertices;
     std::vector< glm::vec2 > uvs;  // not used
     std::vector< glm::vec3 > normals;  // not used
