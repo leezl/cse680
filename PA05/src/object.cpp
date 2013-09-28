@@ -22,7 +22,7 @@ Object::Object(std::string path, std::string filename){
         printf("Error Loading Object File with Assimp.\n");
         exit(-1);
     }
-    std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
+    /*std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
     std::cout<<"Number of Vertices "<<vertices.size()<<std::endl;
     for (std::vector< glm::vec3 >::iterator it = vertices.begin(); it != vertices.end(); it++) {
         //debug vertices
@@ -33,7 +33,7 @@ Object::Object(std::string path, std::string filename){
     for (std::vector<unsigned short>::iterator it=indices.begin(); it!=indices.end(); it++) {
         std::cout<<(*it)<<',';
     }
-    std::cout<<std::endl;
+    std::cout<<std::endl;*/
 }
 
 Object::~Object(){
@@ -74,7 +74,7 @@ bool Object::loadAssImp(std::string path){
     // read file into scene object
     // possible flags:
     // aiProcess_JoinIdenticalVertices | aiProcess_Triangulate (others probably not needed)
-    const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
+    const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices );
     //check if it worked:
     if( !scene) {
         fprintf( stderr, importer.GetErrorString());
@@ -149,7 +149,7 @@ bool Object::loadAssImp(std::string path){
         //3 vertices per face: 3*numFaces
         if ( mesh->HasFaces() ) {
             hasFaces = true;
-            std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
+            //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
             indices.reserve(indices.size()+(3*mesh->mNumFaces));
             for (unsigned int i=0; i<mesh->mNumFaces; i++) {
                 // The model should be all triangle since we triangulated
@@ -443,7 +443,7 @@ void Object::initializeObject(){
         //glDisableClientState{GL_COLOR_ARRAY};
     }
 
-    if (!hasColor && !hasTex) {
+    /*if (!hasColor && !hasTex) {
         //do somehting to make sure it is visible
         colors = std::vector< glm::vec4 > (vertices.size(), glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
         hasColor=true;
@@ -451,7 +451,7 @@ void Object::initializeObject(){
         glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
         glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STATIC_DRAW);
         checkError();
-    }
+    }*/
 
     //error checker (GLU)
     checkError();
