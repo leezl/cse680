@@ -4,9 +4,6 @@ CXXFLAGS= -g -Wall -std=c++0x
 CXXO= -c 
 LIBS= -lglut -lGLEW -lGL -lGLU -lassimp
 LIBDIR= -L/usr/local/lib/
-#-L../../assimp3.0.1270-sdk/lib/
-#ASSIMP = ./usr/local/include/assimp#?
-#ASSIMPLIB = /usr/local/lib/libassimp.so#?
 SOURCES= ../src/shader.cpp ../src/main.cpp
 DEPS = ../src/shader.h
 OBJECTS=$(SOURCES:.cpp=.o)

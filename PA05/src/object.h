@@ -67,11 +67,6 @@ class Object {
     bool loadMaterial(std::string filename);
     bool loadObjectElementsColor(std::string path, std::string filename);
     bool loadAssImp(std::string path);
-    // , std::vector<unsigned short> & indices,
-    //std::vector<glm::vec3> & vertices,
-    //std::vector<glm::vec2> & uvs,
-    //std::vector<glm::vec3> & normals)
-    void findCenter();
     
   public:
     Object(std::string path, std::string filename);

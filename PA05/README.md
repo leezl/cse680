@@ -1,6 +1,8 @@
 Project 05: Assimp model loading
 ========================================
 This project is based on the previous Project, PA04.   
+    
+Currently assumes that assimp is on a path indicated in the LD_LIBRARY_PATH variable.
    
 CONTROLS:     
 Space: stops spinning of object    
@@ -11,7 +13,6 @@ up arrow: raises camera
 down arrow: lower camera    
 s: scale object down    
 S: scales object up    
-
 
 ALSO: I'm using a GLU error check, in case that gives any problems.
     

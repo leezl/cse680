@@ -7,6 +7,7 @@ Liesl Wigand
 #include "object.h"
 
 Object::Object(std::string path, std::string filename){
+    std::cout<<"Creating Object"<<std::endl;
     hasVert=hasTex=hasNorm=hasColor=false;
     loadUV=loadNorm=false;
     max[0] = max[1] = max[2] = -900;
@@ -81,6 +82,7 @@ bool Object::loadAssImp(std::string path){
     //Reserve: better then just push_back, sizes the vector exactly instead of doubling and hoping.
     //HasPositions?
     vertices.reserve(mesh->mNumVertices);
+    hasVert=true;
     for(unsigned int i=0; i<mesh->mNumVertices; i++) {
         aiVector3D pos = mesh->mVertices[i];
         vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
@@ -103,6 +105,7 @@ bool Object::loadAssImp(std::string path){
 
     //grab uvs
     if ( 0 < mesh->GetNumUVChannels() ) {
+        //hasTex = true;
         uvs.reserve(mesh->mNumVertices);
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
             aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
@@ -112,6 +115,7 @@ bool Object::loadAssImp(std::string path){
 
     //grab normals
     if ( mesh->HasNormals() ) {
+        //hasNorm = true;
         normals.reserve(mesh->mNumVertices);
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
             aiVector3D n = mesh->mNormals[i];
@@ -123,6 +127,7 @@ bool Object::loadAssImp(std::string path){
     //check if color exists: index value should be...?
     //mesh->HasVertexColors(0) | mesh->GetNumColorChannels()
     if ( 0 < mesh->GetNumColorChannels() ) {
+        hasColor = true;
         colors.reserve(mesh->mNumVertices);
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
             //only use first set...cause we have no idea why there are more yet...
@@ -379,7 +384,7 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
 }
 
 void Object::initializeObject(){
-    //std::cout<<"Initializing Object"<<std::endl;
+    std::cout<<"Initializing Object"<<std::endl;
     //gen buffers
     //std::cout<<"Setting Element Buffer"<<std::endl;
     glEnableClientState(GL_VERTEX_ARRAY);
