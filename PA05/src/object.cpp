@@ -7,8 +7,8 @@ Liesl Wigand
 #include "object.h"
 
 Object::Object(std::string path, std::string filename){
-    std::cout<<"Creating Object"<<std::endl;
-    hasVert=hasTex=hasNorm=hasColor=false;
+    //std::cout<<"Creating Object"<<std::endl;
+    hasVert=hasTex=hasNorm=hasColor=hasFaces=false;
     loadUV=loadNorm=false;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
@@ -22,16 +22,18 @@ Object::Object(std::string path, std::string filename){
         printf("Error Loading Object File with Assimp.\n");
         exit(-1);
     }
-    /*std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
+    std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
+    std::cout<<"Number of Vertices "<<vertices.size()<<std::endl;
     for (std::vector< glm::vec3 >::iterator it = vertices.begin(); it != vertices.end(); it++) {
         //debug vertices
         std::cout<<'('<<(*it)[0]<<','<<(*it)[1]<<','<<(*it)[2]<<") ";
     }
     std::cout<<std::endl;
-    for (std::vector<unsigned int>::iterator it=indices.begin(); it!=indices.end(); it++) {
+    std::cout<<"Number of indices "<<indices.size()<<std::endl;
+    for (std::vector<unsigned short>::iterator it=indices.begin(); it!=indices.end(); it++) {
         std::cout<<(*it)<<',';
     }
-    std::cout<<std::endl;*/
+    std::cout<<std::endl;
 }
 
 Object::~Object(){
@@ -48,8 +50,10 @@ void Object::cleanUp(){
 
 void Object::checkError(){
     ErrorCheckValue = glGetError();
+    //std::cout<<"Checking Error"<<std::endl;
     if (ErrorCheckValue != GL_NO_ERROR)
     {
+        //std::cout<<"Error occured "<<std::endl;
         fprintf(
             stderr,
             "ERROR: Binding elementBuffer: %s \n",
@@ -63,89 +67,98 @@ void Object::checkError(){
 Function for loading using Assimp. WIP
 */
 bool Object::loadAssImp(std::string path){
+    std::cout<<"Loading Object"<<std::endl;
     //need assimp importer
     Assimp::Importer importer;
 
     // read file into scene object
     // possible flags:
     // aiProcess_JoinIdenticalVertices | aiProcess_Triangulate (others probably not needed)
-    const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
+    const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
     //check if it worked:
     if( !scene) {
         fprintf( stderr, importer.GetErrorString());
         return false;
     }
-    //are we assuming .obj? then folowing is ok, otherwise need loop 
-    const aiMesh* mesh = scene->mMeshes[0];
 
-    //grab vertices
-    //Reserve: better then just push_back, sizes the vector exactly instead of doubling and hoping.
-    //HasPositions?
-    vertices.reserve(mesh->mNumVertices);
-    hasVert=true;
-    for(unsigned int i=0; i<mesh->mNumVertices; i++) {
-        aiVector3D pos = mesh->mVertices[i];
-        vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
-        if (pos.x>max[0]) {
-            max[0] = pos.x;
-        } else if ( pos.x<min[0] ) {
-            min[0] = pos.x;
-        }
-        if (pos.y>max[1]) {
-            max[1] = pos.y;
-        }else if ( pos.y<min[1] ) {
-            min[1] = pos.y;
-        }
-        if (pos.z>max[2]) {
-            max[2] = pos.z;
-        }else if ( pos.z<min[2] ) {
-            min[2] = pos.z;
-        }
-    }
-
-    //grab uvs
-    if ( 0 < mesh->GetNumUVChannels() ) {
-        //hasTex = true;
-        uvs.reserve(mesh->mNumVertices);
+    int addedVerts=0, offset=0;//use as offset since combining meshes...
+    //multiple meshes per object? weird.
+    for (unsigned int j = 0; j<scene->mNumMeshes; j++) {
+        const aiMesh* mesh = scene->mMeshes[j];
+        addedVerts=0;
+        //grab vertices
+        //Reserve: better then just push_back, sizes the vector exactly instead of doubling and hoping.
+        //HasPositions?
+        vertices.reserve(vertices.size()+mesh->mNumVertices);
+        hasVert=true;
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
-            aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-            uvs.push_back(glm::vec2(UVW.x, UVW.y));
+            aiVector3D pos = mesh->mVertices[i];
+            addedVerts++;
+            vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
+            if (pos.x>max[0]) {
+                max[0] = pos.x;
+            } else if ( pos.x<min[0] ) {
+                min[0] = pos.x;
+            }
+            if (pos.y>max[1]) {
+                max[1] = pos.y;
+            }else if ( pos.y<min[1] ) {
+                min[1] = pos.y;
+            }
+            if (pos.z>max[2]) {
+                max[2] = pos.z;
+            }else if ( pos.z<min[2] ) {
+                min[2] = pos.z;
+            }
         }
-    }
 
-    //grab normals
-    if ( mesh->HasNormals() ) {
-        //hasNorm = true;
-        normals.reserve(mesh->mNumVertices);
-        for(unsigned int i=0; i<mesh->mNumVertices; i++) {
-            aiVector3D n = mesh->mNormals[i];
-            normals.push_back(glm::vec3(n.x, n.y, n.z));
+        //grab uvs
+        if ( 0 < mesh->GetNumUVChannels() ) {
+            //hasTex = true;
+            uvs.reserve(vertices.size()+mesh->mNumVertices);
+            for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+                aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
+                uvs.push_back(glm::vec2(UVW.x, UVW.y));
+            }
         }
-    }
 
-    //COLOR? is it separate or are the vertices auto paired with the diffuse color?
-    //check if color exists: index value should be...?
-    //mesh->HasVertexColors(0) | mesh->GetNumColorChannels()
-    if ( 0 < mesh->GetNumColorChannels() ) {
-        hasColor = true;
-        colors.reserve(mesh->mNumVertices);
-        for(unsigned int i=0; i<mesh->mNumVertices; i++) {
-            //only use first set...cause we have no idea why there are more yet...
-            aiColor4D c = mesh->mColors[0][i];
-            colors.push_back(glm::vec4(c.r, c.g, c.b, c.a));
+        //grab normals
+        if ( mesh->HasNormals() ) {
+            //hasNorm = true;
+            normals.reserve(vertices.size()+mesh->mNumVertices);
+            for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+                aiVector3D n = mesh->mNormals[i];
+                normals.push_back(glm::vec3(n.x, n.y, n.z));
+            }
         }
-    }
 
-    //grab indices
-    //3 vertices per face: 3*numFaces
-    if ( mesh->HasFaces() ) {
-        indices.reserve(3*mesh->mNumFaces);
-        for (unsigned int i=0; i<mesh->mNumFaces; i++) {
-            // The model should be all triangle since we triangulated
-            indices.push_back(mesh->mFaces[i].mIndices[0]);
-            indices.push_back(mesh->mFaces[i].mIndices[1]);
-            indices.push_back(mesh->mFaces[i].mIndices[2]);
+        //COLOR? is it separate or are the vertices auto paired with the diffuse color?
+        //check if color exists: index value should be...?
+        //mesh->HasVertexColors(0) | mesh->GetNumColorChannels()
+        if ( 0 < mesh->GetNumColorChannels() ) {
+            hasColor = true;
+            colors.reserve(vertices.size()+mesh->mNumVertices);
+            for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+                //only use first set...cause we have no idea why there are more yet...
+                aiColor4D c = mesh->mColors[0][i];
+                colors.push_back(glm::vec4(c.r, c.g, c.b, c.a));
+            }
         }
+
+        //grab indices
+        //3 vertices per face: 3*numFaces
+        if ( mesh->HasFaces() ) {
+            hasFaces = true;
+            std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
+            indices.reserve(indices.size()+(3*mesh->mNumFaces));
+            for (unsigned int i=0; i<mesh->mNumFaces; i++) {
+                // The model should be all triangle since we triangulated
+                indices.push_back(offset+mesh->mFaces[i].mIndices[0]);
+                indices.push_back(offset+mesh->mFaces[i].mIndices[1]);
+                indices.push_back(offset+mesh->mFaces[i].mIndices[2]);
+            }
+        }
+        offset += addedVerts;
     }
 
     //assume all's well if we make it here
@@ -384,19 +397,19 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
 }
 
 void Object::initializeObject(){
-    std::cout<<"Initializing Object"<<std::endl;
+    //std::cout<<"Initializing Object"<<std::endl;
     //gen buffers
     //std::cout<<"Setting Element Buffer"<<std::endl;
-    glEnableClientState(GL_VERTEX_ARRAY);
     //set element buffer data
     glGenBuffers(1, &elementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
     checkError();
 
     //set vertices
     if (hasVert) {
+        glEnableClientState(GL_VERTEX_ARRAY);
         //std::cout<<"Setting Vertex Buffer"<<std::endl;
         glGenBuffers(1, &geometryBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
@@ -426,6 +439,18 @@ void Object::initializeObject(){
         glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
         glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STATIC_DRAW);
         checkError();
+    } else {
+        //glDisableClientState{GL_COLOR_ARRAY};
+    }
+
+    if (!hasColor && !hasTex) {
+        //do somehting to make sure it is visible
+        colors = std::vector< glm::vec4 > (vertices.size(), glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+        hasColor=true;
+        glGenBuffers(1, &colorBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+        glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[0], GL_STATIC_DRAW);
+        checkError();
     }
 
     //error checker (GLU)
@@ -434,7 +459,9 @@ void Object::initializeObject(){
 
 void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLint loc_color){
     //bind buffers
+    //std::cout<<"Drawing Object"<<std::endl;
     //set vertices
+    //if you don't have these, soemthing is seriously wrong
     glBindBuffer(GL_ARRAY_BUFFER, geometryBuffer);
     // set pointers into the vbo for each of the attributes(position and color)
     glVertexAttribPointer(loc_position,  // location of attribute
@@ -447,6 +474,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLin
 
     //check for normals
     if (hasNorm) {
+        //std::cout<<"using Normals"<<std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
         glVertexAttribPointer(loc_normal,  // location of attribute
                           3,  // number of elements
@@ -455,11 +483,13 @@ void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLin
                           0,//sizeof(glm::vec3),  // stride
                           (void*)0);  // offset
     } else {
+        //std::cout<<"clearing for normals"<<std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     //check for uvs
     if (hasTex) {
+        //std::cout<<"using Uvs"<<std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
         glVertexAttribPointer(loc_uv,  // location of attribute
                           2,  // number of elements
@@ -468,11 +498,14 @@ void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLin
                           0,//sizeof(glm::vec2),  // stride
                           (void*)0);  // offset
     } else {
+        //std::cout<<"clearing for uvs"<<std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     //check colors
     if (hasColor) {
+        //std::cout<<"using colors"<<std::endl;
+        glEnableVertexAttribArray(loc_color);
         glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
         glVertexAttribPointer(loc_color,
                           4,
@@ -482,14 +515,21 @@ void Object::drawObject(GLint loc_position, GLint loc_normal, GLint loc_uv, GLin
                           (void*)0);
         checkError();
     } else {
+        //std::cout<<"clearing for colors"<<std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDisableVertexAttribArray(loc_color);
     }
 
     //draw elements
+    /*if (!hasFaces) {
+        std::cout<<"HAS NO FACES"<<std::endl;
+    }*/
+    //std::cout<<"binding element buffer"<<std::endl;
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     checkError();
-
-    glDrawElements(GL_TRIANGLES, indices.size(),  GL_UNSIGNED_INT, (void*)0);
+    //std::cout<<"drawing elements"<<std::endl;
+    glDrawElements(GL_TRIANGLES, indices.size(),  GL_UNSIGNED_SHORT, (void*)0);
+    //std::cout<<"After Draw"<<std::endl;
     checkError();
 }
 
