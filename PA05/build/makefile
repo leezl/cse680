@@ -6,8 +6,8 @@ LIBS= -lglut -lGLEW -lGL -lGLU -lassimp
 LIBDIR= -L/usr/local/lib
 SOURCES= ../src/shader.cpp ../src/main.cpp
 DEPS = ../src/shader.h
-OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=../bin/PA
+OBJECTS= $(SOURCES:.cpp=.o)
+EXECUTABLE= ../bin/PA
 RM= /bin/rm -f
 
 all: $(EXECUTABLE)
@@ -15,7 +15,7 @@ all: $(EXECUTABLE)
 $(EXECUTABLE): shader.o object.o main.o
 	$(CC) $(CXXFLAGS) object.o shader.o main.o -o $(EXECUTABLE) $(LIBDIR) $(LIBS)
 
-main.o: ../src/main.cpp ../src/shader.h
+main.o: ../src/main.cpp ../src/shader.h ../src/object.h
 	$(CC) $(CXXO) $(CXXFLAGS) ../src/main.cpp -o main.o
 
 shader.o: ../src/shader.cpp ../src/shader.h
