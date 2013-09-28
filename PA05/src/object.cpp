@@ -143,6 +143,8 @@ bool Object::loadAssImp(std::string path){
                 aiColor4D c = mesh->mColors[0][i];
                 colors.push_back(glm::vec4(c.r, c.g, c.b, c.a));
             }
+        } else {//temporary
+
         }
 
         //grab indices
