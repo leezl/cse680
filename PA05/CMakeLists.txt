@@ -1,12 +1,19 @@
 cmake_minimum_required(VERSION 2.6)
 project(PA05)
 
+cmake_policy(SET CMP0017 NEW)
+
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PA05_SOURCE_DIR}/bin")
 
 #message("binary dir " ${PA05_BINARY_DIR})
 
 #add missing Module finders
+#This wasn't set on one of my computers...
+SET(CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules")
+#on one the first path worked, on another the second...
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PA05_SOURCE_DIR}/cmake/Modules/")
 set(PA05_MODULE_PATH ${PA05_MODULE_PATH} "${PA05_SOURCE_DIR}/cmake/Modules/")
+
 include_directories(${PA05_SOURCE_DIR}/src)
 
 #find libraries
