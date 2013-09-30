@@ -147,24 +147,16 @@ bool Object::loadAssImp(std::string path){
             //use diffuse if it exists from material
             //check materials exist
             if (scene->HasMaterials()) {
-                std::cout<<"Has Materials "<<std::endl;
-                unsigned int matRef = mesh->mMaterialIndex;
                 //check diffuse exists
-                aiColor3D diff(1.0f,1.0f,1.0f);
-                scene->mMaterials[matRef]->Get(AI_MATKEY_COLOR_DIFFUSE, &diff, NULL);
-                std::cout<<"Diffuse: "<<diff.r<<','<<diff.g<<','<<diff.b<<std::endl;
-                std::cout<<scene->mNumMaterials<<' '<<matRef<<std::endl;
-                std::cout<< scene->mMaterials[matRef]->mNumProperties <<std::endl;
-                for (unsigned int i =0; i< scene->mMaterials[matRef]->mNumProperties; i++) {
-                    std::string what = scene->mMaterials[matRef]->mProperties[i]->mKey.C_Str();
-                    std::cout<< what <<std::endl;
-                }
+                aiColor4D diff(0.8f,0.8f,0.8f, 1.0f);
+                aiMaterial *mtl = scene->mMaterials[mesh->mMaterialIndex];
+                aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diff);
                 //load diffuse as color
                 hasColor = true;
                 colors.reserve(vertices.size()+mesh->mNumVertices);
                 for(unsigned int i=0; i<mesh->mNumVertices; i++) {
                     //only use first set...cause we have no idea why there are more yet...
-                    colors.push_back(glm::vec4(diff.r, diff.g, diff.b, 1.0f));
+                    colors.push_back(glm::vec4(diff.r, diff.g, diff.b, diff.a));
                 }
             }
         }
