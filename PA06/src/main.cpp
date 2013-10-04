@@ -28,16 +28,6 @@ struct Vertex {
     GLfloat color[3];
 };
 
-struct Light {
-    glm::vec4 lightPos;
-    glm::vec4 lightAmb;
-    glm::vec4 lightDiff;
-    glm::vec4 lightSpec;
-};
-struct LightLoc {
-    GLint loc_AmbProd, loc_LightPos, loc_Shin, loc_DiffProd, loc_SpecProd;
-};
-
 // --Evil Global variables
 // Just for this example!
 int w = 640, h = 480;  // Window size
@@ -56,7 +46,12 @@ float height = 6.0;
 // attribute locations
 GLint loc_position;
 GLint loc_color;
-GLint loc_normal, loc_uv, loc_mmat, loc_vmat, loc_pmat;
+GLint loc_normal;
+GLint loc_uv;
+GLint loc_Shin;
+GLint loc_mmat;
+GLint loc_vmat;
+GLint loc_pmat;
 
 // transform matrices
 //std::vector<Objects> objects;  // stores model matices by buffer index
@@ -65,7 +60,7 @@ glm::mat4 model;  // obj->world each object should have its own model matrix
 glm::mat4 view;  // world->eye
 glm::mat4 projection;  // eye->clip
 //glm::mat4 mvp;  // premultiplied modelviewprojection
-vector<Light> lights;
+Light light;
 LightLoc lightin;
 
 // --GLUT Callbacks
@@ -168,7 +163,7 @@ void render() {
     glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(lights[0].lightPos));
+    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(light.lightPos));
 
     //enable attributes
     glEnableVertexAttribArray(loc_position);
@@ -179,7 +174,7 @@ void render() {
     }
 
     //draw object
-    whatIsIt->drawObject(loc_position, loc_normal, 0, loc_color, lights[0], lightin);
+    whatIsIt->drawObject(loc_position, loc_normal, 0, loc_color, loc_Shin, light, lightin);
 
     // clean up
     glDisableVertexAttribArray(loc_position);
@@ -282,23 +277,23 @@ bool initialize() {
     // Initialize basic geometry and shaders for this example
 
     //Add a default light; assume single light for now
-    Light defaultLight;
-    defaultLight.lightPos = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
-    defaultLight.lightAmb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    defaultLight.lightDiff = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
-    defaultLight.lightSpec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
-    lights.push_back(defaultLight);
+    light.lightPos = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
+    light.lightAmb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    light.lightDiff = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
+    light.lightSpec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
 
     // Create a Vertex Buffer object to store this vertex info on the GPU
     whatIsIt->initializeObject();
 
+    Shader *vertex_shader, *fragment_shader;
+
     // --Geometry done
     if (noShading) {
-        Shader vertex_shader(GL_VERTEX_SHADER);
-        Shader fragment_shader(GL_FRAGMENT_SHADER);
+        vertex_shader = new Shader(GL_VERTEX_SHADER);
+        fragment_shader = new Shader(GL_FRAGMENT_SHADER);
     } else {
-        Shader vertex_shader(GL_VERTEX_SHADER, "assets/shaders/BPVertShader.vs");
-        Shader fragment_shader(GL_FRAGMENT_SHADER);
+        vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/BPVertShader.vs");
+        fragment_shader = new Shader(GL_FRAGMENT_SHADER);
     }
 
     GLint shader_status;
@@ -306,9 +301,13 @@ bool initialize() {
     // Now we link the 2 shader objects into a program
     // This program is what is run on the GPU
     program = glCreateProgram();
-    glAttachShader(program, vertex_shader.get());
-    glAttachShader(program, fragment_shader.get());
+    glAttachShader(program, vertex_shader->get());
+    glAttachShader(program, fragment_shader->get());
     glLinkProgram(program);
+    //ehh
+    delete vertex_shader;
+    delete fragment_shader;
+
     // check if everything linked ok
     glGetProgramiv(program, GL_LINK_STATUS, &shader_status);
     if ( !shader_status ) {

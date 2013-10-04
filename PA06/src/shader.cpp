@@ -73,7 +73,13 @@ void Shader::compile(const char *shad) {
         }
     }
     catch (int e) {
-      std::cerr << "[F] FAILED TO COMPILE SHADER! " << kind << std::endl;
+        std::string opps;
+        if (kind == GL_FRAGMENT_SHADER) {
+            opps = "fragment";
+        } else {
+            opps = "vertex";
+        }
+      std::cerr << "[F] FAILED TO COMPILE SHADER! " << opps << " " << kind << std::endl;
     }
     delete[] shad;
 }

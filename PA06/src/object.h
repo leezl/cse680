@@ -28,23 +28,16 @@ Need: separate draw for each material: different lighting, so: need to keep face
 Keep in Assimp aiScene: store the aiScene, and iterate through it in the draw function.
 */
 
-/*struct mtl{
-  // These first 7 are in my file from blender
-  std::string name;
-  float Ns;      //shininess?
-  glm::vec3 Ka;  // ambient
-  glm::vec3 Kd;  // diffuse
-  glm::vec3 Ks;  // specular
-  float Ni;  // optical density: bends light or not(1.0)
-  float d;  // may have -halo; dissolve factor
-  int illum;  // illumination model
-  // The following can be in mtl files, but aren't in mine
-  //std::vector < glm::vec3 > Tf;
-  //double Tr; may replace d...
-  //int sharpness;
-  //double Ns; 
-  // Also may be map_<item> for Ka, Ks, Kd, d, Ns
-};*/
+struct Light {
+    glm::vec4 lightPos;
+    glm::vec4 lightAmb;
+    glm::vec4 lightDiff;
+    glm::vec4 lightSpec;
+};
+struct LightLoc {
+    GLint loc_AmbProd, loc_LightPos, loc_Shin, loc_DiffProd, loc_SpecProd;
+};
+
 
 class Object {
   private:

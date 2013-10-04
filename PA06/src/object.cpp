@@ -30,19 +30,19 @@ Object::~Object(){
 
 void Object::cleanUp(){
     //soooo tedious...must be a better way
-    for (int i=0; i<elementBuffers.size(); i++) {
+    for (unsigned int i=0; i<elementBuffers.size(); i++) {
         glDeleteBuffers(1, &elementBuffers[i]);
     }
-    for (int i=0; i<geometryBuffers.size(); i++) {
+    for (unsigned int i=0; i<geometryBuffers.size(); i++) {
         glDeleteBuffers(1, &geometryBuffers[i]);
     }
-    for (int i=0; i<normalBuffers.size(); i++) {
+    for (unsigned int i=0; i<normalBuffers.size(); i++) {
         glDeleteBuffers(1, &normalBuffers[i]);
     }
-    for (int i=0; i<colorBuffers.size(); i++) {
+    for (unsigned int i=0; i<colorBuffers.size(); i++) {
         glDeleteBuffers(1, &colorBuffers[i]);
     }
-    for (int i=0; i<textureBuffers.size(); i++) {
+    for (unsigned int i=0; i<textureBuffers.size(); i++) {
         glDeleteBuffers(1, &textureBuffers[i]);
     }
 }
@@ -104,7 +104,7 @@ bool Object::loadAssImp(std::string path){
         }
         //flatten indices here so we can ignore them later
         if ( mesh->HasFaces() ) {
-            std::vector< unsigned int > meshIndices;
+            std::vector< unsigned short > meshIndices;
             //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
             meshIndices.reserve(3*mesh->mNumFaces);
             for (unsigned int i=0; i<mesh->mNumFaces; i++) {
@@ -301,12 +301,16 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
             mtlAmb[2] = diff.b;
             mtlAmb[3] = diff.a;
             //shine
-            aiGetMaterialColor(mtl, AI_MATKEY_SHININESS, &mtlShine);
+            diff.r = mtlShine;
+            aiGetMaterialColor(mtl, AI_MATKEY_SHININESS, &diff);
+            //why is shininess being returned as color4d, when assimp
+            //docs claim it should be a float...?
+            mtlShine = diff.r;
         }
-        glUniform4fv(lightin.loc_LightAmb, 1, glm::value_ptr(light.lightAmb*mtlAmb));
-        glUniform4fv(lightin.loc_LightSpec, 1, glm::value_ptr(light.lightSpec*mtlSpec));
-        glUniform4fv(lightin.loc_LightDiff, 1, glm::value_ptr(light.lightDiff*mtlDiff));
-        glUniform1f(loc_Shin, mtlShine);//ref
+        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.lightAmb*mtlAmb));
+        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.lightSpec*mtlSpec));
+        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.lightDiff*mtlDiff));
+        glUniform1f(loc_shin, mtlShine);//ref
 
         //draw elements
         /*if (!hasFaces) {
