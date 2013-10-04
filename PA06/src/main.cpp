@@ -48,7 +48,6 @@ GLint loc_position;
 GLint loc_color;
 GLint loc_normal;
 GLint loc_uv;
-GLint loc_Shin;
 GLint loc_mmat;
 GLint loc_vmat;
 GLint loc_pmat;
@@ -174,7 +173,7 @@ void render() {
     }
 
     //draw object
-    whatIsIt->drawObject(loc_position, loc_normal, -1, loc_color, loc_Shin, light, lightin);
+    whatIsIt->drawObject(loc_position, loc_normal, -1, loc_color, light, lightin);
 
     // clean up
     glDisableVertexAttribArray(loc_position);
