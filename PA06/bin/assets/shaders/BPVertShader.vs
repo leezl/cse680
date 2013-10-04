@@ -4,7 +4,7 @@ varying vec4 color;
 
 uniform mat4 M;
 uniform mat4 V;
-unifrom mat4 P;
+uniform mat4 P;
 uniform vec4 LightPosition;
 uniform vec4 DiffuseProduct, SpecularProduct, AmbientProduct;
 uniform float Shininess;
@@ -13,7 +13,7 @@ void main(void){
     vec4 diffuse, specular, ambient;
 
     //positioning
-    vec3 = (V * M * vec4(v_position, 1.0)).xyz;
+    vec3 pos = (V * M * vec4(v_position, 1.0)).xyz;
     gl_Position = P * V * M * vec4(v_position, 1.0);
 
     //shading
@@ -23,8 +23,14 @@ void main(void){
     vec3 H = normalize(L+E);
 
     diffuse = max(dot(L, N), 0.0) * DiffuseProduct;
+    if (diffuse.x==0.0 && diffuse.y==0.0 && diffuse.z==0.0) {
+        diffuse = vec4(0.0, 1.0, 0.0, 1.0);
+    }
     specular = pow( max( dot(N, H), 0.0 ), Shininess ) * SpecularProduct;
-    if ( dot(L, N) <0.0 ) specular = vec4(0.0, 0.0, 0.0, 1.0);
+    if ( dot(L, N) < 0.0 ) {
+        specular = vec4(0.0, 1.0, 0.0, 1.0);
+        ambient = vec4(1.0, 0.0, 0.0, 1.0);
+    }
     ambient = AmbientProduct;
     color = vec4((ambient + diffuse + specular).xyz, 1.0);
 }

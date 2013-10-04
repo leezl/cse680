@@ -35,7 +35,7 @@ GLuint program;  // The GLSL program handle
 Object *whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
 GLuint vbo_geometry;
 float rotationSpeed = 120.0;
-bool rotateFlag=true, noShading=false;
+bool rotateFlag=false, noShading=false;
 float scaler = 1.0;
 float dist = -12.0;
 float height = 6.0;
@@ -174,7 +174,7 @@ void render() {
     }
 
     //draw object
-    whatIsIt->drawObject(loc_position, loc_normal, 0, loc_color, loc_Shin, light, lightin);
+    whatIsIt->drawObject(loc_position, loc_normal, -1, loc_color, loc_Shin, light, lightin);
 
     // clean up
     glDisableVertexAttribArray(loc_position);
@@ -276,12 +276,6 @@ void arrow_keys(int key, int x, int y) {
 bool initialize() {
     // Initialize basic geometry and shaders for this example
 
-    //Add a default light; assume single light for now
-    light.lightPos = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
-    light.lightAmb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    light.lightDiff = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
-    light.lightSpec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
-
     // Create a Vertex Buffer object to store this vertex info on the GPU
     whatIsIt->initializeObject();
 
@@ -312,6 +306,11 @@ bool initialize() {
     glGetProgramiv(program, GL_LINK_STATUS, &shader_status);
     if ( !shader_status ) {
         std::cerr << "[F] THE SHADER PROGRAM FAILED TO LINK" << std::endl;
+        GLint infoLogLength;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
+        GLchar* strInfoLog = new GLchar[infoLogLength + 1];
+        glGetProgramInfoLog(program, infoLogLength, NULL, strInfoLog);
+        fprintf(stderr, "Compilation error in program: %s\n", strInfoLog);
         return false;
     }
 
@@ -404,8 +403,17 @@ bool initialize() {
     //Look at center of object:
     glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
     glm::vec3 max = glm::vec3(whatIsIt->max[0], whatIsIt->max[1], whatIsIt->max[2]);
-    dist = max[2]+1.0;
-    height = max[1]+1.0;
+    glm::vec3 min = glm::vec3(whatIsIt->min[0], whatIsIt->min[1], whatIsIt->min[2]);
+    dist = max[2]+(0.5*(max[2]-min[2]));
+    height = max[1]+(0.5*(max[1]-min[1]));
+    //ensure light outside of object
+    //Add a default light; assume single light for now
+    light.lightPos = glm::vec4(0.0f+(0.5*(max[2]-min[2])), height+(0.5*(max[1]-min[1])), dist, 1.0f);
+    light.lightAmb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    light.lightDiff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    light.lightSpec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
+
+    //ensure camera outside of object
     view = glm::lookAt(glm::vec3(0.0, height, dist),  // Eye Position
                        center,//glm::vec3(0.0, 0.0, 0.0),  // Focus point
                        glm::vec3(0.0, 1.0, 0.0));  // Positive Y is up

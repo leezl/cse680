@@ -15,6 +15,7 @@ Delete other load Funcitons when done picking one
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/cexport.h>         // because we want a copy of the scene...not great
 //Include glm
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -42,7 +43,7 @@ struct LightLoc {
 class Object {
   private:
     std::vector<GLuint> elementBuffers, geometryBuffers, normalBuffers, colorBuffers, textureBuffers;
-    const aiScene * scene;
+    aiScene * scene;
     std::vector< std::vector<unsigned short> > indices; //by mesh; flattens faces out
     //Mode of draw: elements
     GLenum ErrorCheckValue;

@@ -79,7 +79,12 @@ void Shader::compile(const char *shad) {
         } else {
             opps = "vertex";
         }
-      std::cerr << "[F] FAILED TO COMPILE SHADER! " << opps << " " << kind << std::endl;
+        std::cerr << "[F] FAILED TO COMPILE SHADER! " << opps << " " << kind << std::endl;
+        GLint infoLogLength;
+        glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &infoLogLength);
+        GLchar* strInfoLog = new GLchar[infoLogLength + 1];
+        glGetShaderInfoLog(handle, infoLogLength, NULL, strInfoLog);
+        fprintf(stderr, "Compilation error in shader %s: %s\n", opps.c_str(), strInfoLog);
     }
     delete[] shad;
 }

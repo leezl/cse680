@@ -7,6 +7,7 @@ Liesl Wigand
 #include "object.h"
 
 Object::Object(std::string path, std::string filename){
+    scene=NULL;
     //std::cout<<"Creating Object"<<std::endl;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
@@ -73,8 +74,9 @@ bool Object::loadAssImp(std::string path){
     // read file into scene object
     // possible flags:
     // triangles, and normal important. others probably won't do much (vertex normals)
-    scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_OptimizeMeshes 
+    const aiScene *scener = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_OptimizeMeshes 
         | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals );
+    aiCopyScene(scener, &scene);
     //check if it worked:
     if( !scene) {
         fprintf( stderr, importer.GetErrorString());
@@ -125,6 +127,9 @@ void Object::initializeObject(){
     //std::cout<<"Initializing Object"<<std::endl;
     //gen buffers
     //have to draw each material group of faces separately: lighting
+    if (scene == NULL) {
+        std::cout<<"The scene points nowhere."<<std::endl;
+    }
     //can we avoid all this duplication?
     //glGenBuffers (scene->mNumMeshes, &elementBuffers );?
     elementBuffers.reserve(scene->mNumMeshes);
@@ -211,7 +216,6 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         Light light, LightLoc lightin){
     //bind buffers
     //std::cout<<"Drawing Object"<<std::endl;
-
     //iterate through all meshes (per material lighting and shading)
     for (unsigned int j = 0; j<scene->mNumMeshes; j++) {
         const aiMesh* mesh = scene->mMeshes[j];
@@ -228,8 +232,8 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         checkError();
 
         //check for normals
-        if (mesh->HasNormals() && loc_normal!=0) {
-            //std::cout<<"using Normals"<<std::endl;
+        if (mesh->HasNormals() && loc_normal!=-1) {
+            std::cout<<"using Normals"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
             glVertexAttribPointer(loc_normal,  // location of attribute
                               3,  // number of elements
@@ -243,7 +247,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }
 
         //check for uvs
-        if (0 < mesh->GetNumUVChannels() && loc_uv!=0) {
+        if (0 < mesh->GetNumUVChannels() && loc_uv!=-1) {
             //std::cout<<"using Uvs"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, textureBuffers[j]);
             glVertexAttribPointer(loc_uv,  // location of attribute
@@ -258,7 +262,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }
 
         //check colors
-        if (0 < mesh->GetNumColorChannels() && loc_color!=0) {
+        if (0 < mesh->GetNumColorChannels() && loc_color!=-1) {
             //std::cout<<"using colors"<<std::endl;
             glEnableVertexAttribArray(loc_color);
             glBindBuffer(GL_ARRAY_BUFFER, colorBuffers[j]);
@@ -281,6 +285,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         float mtlShine = 0.1;
         if (scene->HasMaterials()) {
             //check diffuse exists
+            std::cout<<"Has materials "<<std::endl;
             aiColor4D diff(0.8f,0.8f,0.8f, 1.0f);//default diffuse
             aiMaterial *mtl = scene->mMaterials[mesh->mMaterialIndex];
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diff);
@@ -307,6 +312,58 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
             //docs claim it should be a float...?
             mtlShine = diff.r;
         }
+        std::cout<<"specular "<<(light.lightSpec*mtlSpec)[0]<<' '<<
+            (light.lightSpec*mtlSpec)[1]<<' '<<(light.lightSpec*mtlSpec)[2]<<std::endl;
+        std::cout<<"diffuse "<<(light.lightDiff*mtlDiff)[0]<<' '<<
+            (light.lightDiff*mtlDiff)[1]<<' '<<(light.lightDiff*mtlDiff)[2]<<std::endl;
+        //glm::vec3 crap = glm::normalize(LightPosition - pos);
+        for (int i=0; i<mesh->mNumVertices; i++) {
+            std::cout<<"Vert "<<mesh->mVertices[i][0]<<','<<mesh->mVertices[i][1]<<','<<mesh->mVertices[i][2]<<','<<std::endl;
+            std::cout<<mesh->mNormals[i][0]<<','<<mesh->mNormals[i][1]<<','<<mesh->mNormals[i][2]<<','<<std::endl;
+            glm::vec3 N = glm::normalize(glm::vec3(mesh->mNormals[i][0],mesh->mNormals[i][1],mesh->mNormals[i][2]));
+            glm::vec3 L = glm::vec3(light.lightPos[0], light.lightPos[1], light.lightPos[2]) - 
+                glm::vec3(mesh->mVertices[i][0], mesh->mVertices[i][1], mesh->mVertices[i][2]);
+            float dotter = glm::dot(N, L);
+            std::cout<<"Calc: "<<dotter<<std::endl;
+            glColor3i(1.0,0.0,0.0);
+            glBegin(GL_LINES);
+            glVertex3f(mesh->mVertices[i][0], mesh->mVertices[i][1], mesh->mVertices[i][2]); // origin of the line
+            glVertex3f(mesh->mNormals[i][0], mesh->mNormals[i][1], mesh->mNormals[i][2]); // ending point of the line
+            glEnd( );
+        }
+        std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
+        char argh;
+        std::cin>>argh;
+        /*
+        specular 1 0.8 0
+diffuse 1 0.8 0
+Vert 1,-1,-1,
+0.57735,-0.57735,-0.57735,
+Calc: -4.04145
+Vert 1,-1,1,
+0.57735,-0.57735,0.57735,
+Calc: -1.73205
+Vert -1,-1,1,
+-0.57735,-0.57735,0.57735,
+Calc: -2.88675
+Vert -1,-1,-1,
+-0.57735,-0.57735,-0.57735,
+Calc: -5.19615
+Vert 1,1,-0.999999,
+0.57735,0.577351,-0.57735,
+Calc: -0.577348
+Vert -1,1,-1,
+-0.57735,0.57735,-0.57735,
+Calc: -1.73205
+Vert -1,1,1,
+-0.57735,0.57735,0.57735,
+Calc: 0.57735
+Vert 0.999999,1,1,
+0.57735,0.57735,0.57735,
+Calc: 1.73205
+Light 1 3 2
+        */
+
         glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.lightAmb*mtlAmb));
         glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.lightSpec*mtlSpec));
         glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.lightDiff*mtlDiff));
