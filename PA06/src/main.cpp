@@ -33,6 +33,7 @@ struct Vertex {
 int w = 640, h = 480;  // Window size
 GLuint program;  // The GLSL program handle
 Object *whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
+Object *sun;
 GLuint vbo_geometry;
 float rotationSpeed = 120.0;
 bool rotateFlag=false, noShading=false;
@@ -55,7 +56,7 @@ GLint loc_pmat;
 // transform matrices
 //std::vector<Objects> objects;  // stores model matices by buffer index
 //move model matrix to object? well...
-glm::mat4 model;  // obj->world each object should have its own model matrix 
+glm::mat4 model, sunModel;  // obj->world each object should have its own model matrix 
 glm::mat4 view;  // world->eye
 glm::mat4 projection;  // eye->clip
 //glm::mat4 mvp;  // premultiplied modelviewprojection
@@ -109,6 +110,7 @@ int main(int argc, char **argv) {
 
     std::cout<<"Loading "<<filename<<std::endl;
     whatIsIt = new Object(path+"/", filename);
+    sun = new Object("assets/models/", "assets/models/sun.obj");
 
     // Initialize glut
     glutInit(&argc, argv);
@@ -162,24 +164,29 @@ void render() {
     glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(light.pos));
+    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos));
 
     //enable attributes
     glEnableVertexAttribArray(loc_position);
     if (noShading) {
       glEnableVertexAttribArray(loc_color);  
     } else{
+        //std::cout<<"enabling normal "<<std::endl;
       glEnableVertexAttribArray(loc_normal);
     }
 
     //draw object
     whatIsIt->drawObject(loc_position, loc_normal, -1, loc_color, light, lightin);
 
+    glUniformMatrix4fv(loc_mmat, 1, GL_FALSE, glm::value_ptr(sunModel));
+    sun->drawObject(loc_position, loc_normal, -1, loc_color, light, lightin);
+
     // clean up
     glDisableVertexAttribArray(loc_position);
     if (noShading) {
       glDisableVertexAttribArray(loc_color);
     } else {
+        //std::cout<<"disabling normals "<<std::endl;
       glDisableVertexAttribArray(loc_normal);
     }
 
@@ -204,6 +211,9 @@ void update() {
     //move object
     model = glm::scale(glm::mat4(1.0f), glm::vec3(scaler, scaler, scaler));
     model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    //move sun 
+    sunModel = glm::translate(glm::mat4(1.0f), glm::vec3(light.pos.x, light.pos.y, light.pos.z));
 
     //move view...
     glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
@@ -244,8 +254,20 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
     case 115://s
        scaler -= 0.1;
        break;
-    case 83:
+    case 83://S
        scaler +=0.1;
+       break;
+    case 'k'://1
+       light.pos.y -= 0.1;
+       break;
+    case 'i'://2
+       light.pos.y +=0.1;
+       break;
+    case 'j'://1
+       light.pos.x -= 0.1;
+       break;
+    case 'l'://2
+       light.pos.x +=0.1;
        break;
     default:
       break;
@@ -277,6 +299,7 @@ bool initialize() {
 
     // Create a Vertex Buffer object to store this vertex info on the GPU
     whatIsIt->initializeObject();
+    sun->initializeObject();
 
     Shader *vertex_shader, *fragment_shader;
 
@@ -330,6 +353,7 @@ bool initialize() {
             return false;
         }
     } else {
+        std::cout<<"getting a normal glint "<<std::endl;
         loc_normal = glGetAttribLocation(program,
                         const_cast<const char*>("v_normal"));
         if ( loc_normal == -1 ) {
@@ -425,6 +449,8 @@ bool initialize() {
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+    glEnable ( GL_COLOR_MATERIAL );
 
     // and its done
     return true;

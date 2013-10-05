@@ -53,6 +53,7 @@ class Object {
     std::vector<GLuint> elementBuffers, geometryBuffers, normalBuffers, colorBuffers, textureBuffers;
     //aiScene * scene;
     //following are vectors of meshes: separate mesh per material
+    std::string name;
     std::vector< Material > materials;
     std::vector< std::vector<unsigned int> > indices; //by mesh; flattens faces out
     std::vector< std::vector< glm::vec4 > > vertices;
@@ -71,6 +72,7 @@ class Object {
     void initializeObject();
     void cleanUp();
     void drawObject(GLint position, GLint normal, GLint uv, GLint color, Light light, LightLoc lightin);
+    void drawNormals();
     float center[3];
     float max[3];
     float min[3];

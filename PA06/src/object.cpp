@@ -7,10 +7,11 @@ Liesl Wigand
 #include "object.h"
 
 Object::Object(std::string path, std::string filename){
-    std::cout<<"Creating Object"<<std::endl;
+    std::cout<<"Creating Object "<<path+filename<<std::endl;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
     center[0]=center[1]=center[2] = 0;
+    name = filename;
     //loading object
     if ( !loadAssImp(filename) ) {
         printf("Error Loading Object File with Assimp.\n");
@@ -60,14 +61,14 @@ void Object::checkError(std::string where=" "){
 Function for loading using Assimp. WIP
 */
 bool Object::loadAssImp(std::string path){
-    std::cout<<"Loading Object"<<std::endl;
+    std::cout<<"Loading Object "<<path<<std::endl;
     //need assimp importer
     Assimp::Importer importer;
 
     // read file into scene object
     // possible flags:
     // triangles, and normal important. others probably won't do much (vertex normals)
-    const aiScene *scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals );
+    const aiScene *scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals );//SmoothNormals?
     //aiCopyScene(scener, &scene);
     //check if it worked:
     if( !scene) {
@@ -175,10 +176,6 @@ bool Object::loadAssImp(std::string path){
             indices.push_back(meshIndices);//all of the faces in mesh
             meshIndices.clear();
         }
-        for (int i =0; i<indices[j].size(); i++) {
-            std::cout<<"Indices "<<indices[j][i]<<std::endl;
-            std::cout<<"Vertices "<<vertices[j][indices[j][i]].x<<','<<vertices[j][indices[j][i]].y<<','<<vertices[j][indices[j][i]].z<<std::endl;
-        }
     }
     //load materials
     if (scene->HasMaterials()) {
@@ -196,7 +193,7 @@ bool Object::loadAssImp(std::string path){
             temp.diff[1] = diff.g;
             temp.diff[2] = diff.b;
             temp.diff[3] = diff.a;
-            std::cout<<"Diffuse: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
+            //std::cout<<"Diffuse: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             diff.r = diff.g = diff.b = 0.2;//default specular
             diff.a = 1.0;
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &diff);
@@ -204,7 +201,7 @@ bool Object::loadAssImp(std::string path){
             temp.spec[1] = diff.g;
             temp.spec[2] = diff.b;
             temp.spec[3] = diff.a;
-            std::cout<<"Specular: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
+            //std::cout<<"Specular: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             diff.r = diff.g = diff.b = 0.1;//default ambient
             diff.a = 1.0;
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &diff);
@@ -212,14 +209,14 @@ bool Object::loadAssImp(std::string path){
             temp.amb[1] = diff.g;
             temp.amb[2] = diff.b;
             temp.amb[3] = diff.a;
-            std::cout<<"Ambient: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
+            //std::cout<<"Ambient: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             //shine
             float shiny = 20;
             aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shiny);
             //why is shininess being returned as color4d, when assimp
             //docs claim it should be a float...?
             temp.shine = shiny;
-            std::cout<<"Shine: "<<shiny<<std::endl;
+            //std::cout<<"Shine: "<<shiny<<std::endl;
             materials.push_back(temp);
         }
     }
@@ -230,7 +227,7 @@ bool Object::loadAssImp(std::string path){
 }
 
 void Object::initializeObject(){
-    //std::cout<<"Initializing Object"<<std::endl;
+    //std::cout<<"Initializing Object "<<name<<std::endl;
     //gen buffers
     //have to draw each material group of faces separately: lighting
     //can we avoid all this duplication?
@@ -269,8 +266,9 @@ void Object::initializeObject(){
         }
         //check for normals
         if (normals.size()>j) {
-            //std::cout<<"Setting Normals Buffer"<<std::endl;
+            //std::cout<<"Setting Normals Buffer "<<std::endl;
             glGenBuffers(1, &spare);
+            std::cout<<"normal buffer"<<spare<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec4), &normals[j][0], GL_STATIC_DRAW);
             normalBuffers.push_back(spare);
@@ -306,7 +304,7 @@ void Object::initializeObject(){
             //glDisableClientState{GL_COLOR_ARRAY};
             colorBuffers.push_back(0);
         }
-
+        //std::cout<<elementBuffers.size()<<','<<indices.size()<<','<<geometryBuffers.size()<<','<<normalBuffers.size()<<std::endl;
         //error checker (GLU)
         checkError("After Initializing a mesh");
     }
@@ -316,9 +314,24 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         GLint loc_uv, GLint loc_color, 
         Light light, LightLoc lightin){
     //bind buffers
-    //std::cout<<"Drawing Object"<<std::endl;
+    //std::cout<<"Drawing Object "<<name<<std::endl;
+    //std::cout<<elementBuffers.size()<<','<<indices.size()<<','<<geometryBuffers.size()<<','<<normalBuffers.size()<<std::endl;
     //iterate through all meshes (per material lighting and shading)
     for (unsigned int j = 0; j<indices.size(); j++) {
+        //Light calculations as necessary
+        //std::cout<<"before materials "<<std::endl;
+        checkError("after all buffers bound");
+        //std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
+        checkError("pre-ambient Send");
+        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
+        checkError("pre-specular send");
+        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
+        checkError("pre-diffuse send");
+        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
+        checkError("pre-shine send");
+        glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
+        checkError("pre-element buffer bind");
+        //std::cout<<(light.spec*materials[materialIndices[j]].spec)[0]<<','<<(light.spec*materials[materialIndices[j]].spec)[1]<<','<<(light.spec*materials[materialIndices[j]].spec)[2]<<std::endl;
         //set vertices
         //if you don't have these, soemthing is seriously wrong
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffers[j]);
@@ -333,7 +346,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
 
         //check for normals
         if (normals.size()>0 && loc_normal!=-1) {
-            //std::cout<<"using Normals"<<std::endl;
+            //std::cout<<"using Normals "<<loc_normal<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
             glVertexAttribPointer(loc_normal,  // location of attribute
                               4,  // number of elements
@@ -379,26 +392,16 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
             glDisableVertexAttribArray(loc_color);
         }
 
-        //Light calculations as necessary
-
-        
-        //std::cout<<"before materials "<<std::endl;
-        checkError("after all buffers bound");
-        //std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
-        checkError("pre-ambient Send");
-        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
-        checkError("pre-specular send");
-        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
-        checkError("pre-diffuse send");
-        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
-        checkError("pre-shine send");
-        glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
-        checkError("pre-element buffer bind");
-
         //draw elements
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffers[j]);
         checkError("pre-element draw");
         glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_INT, (void*)0);
         checkError("Post element draw");
+    }
+}
+
+void Object::drawNormals(){
+    for (unsigned int j = 0; j<indices.size(); j++) {
+
     }
 }

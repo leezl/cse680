@@ -17,16 +17,22 @@ void main(void){
     gl_Position = P * V * M * v_position;
 
     //shading
-    vec3 N = normalize(V * M * v_normal).xyz;
+    //debug
+    //vec3 N = normalize(V * M * v_normal).xyz;
+    //vec3 N = normalize(v_normal).xyz;
+    vec3 N =vec3(0.0, 1.0, 0.0);
     vec3 L = normalize(LightPosition.xyz - pos);
     vec3 E = normalize(-pos);
     vec3 H = normalize(L+E);
 
     diffuse = max(dot(L, N), 0.0) * DiffuseProduct;
     specular = pow( max( dot(N, H), 0.0 ), Shininess ) * SpecularProduct;
-    if ( dot(L, N) < 0.0 ) {
-        specular = vec4(0.0, 0.0, 0.0, 1.0);
-    }
     ambient = AmbientProduct;
-    color = vec4((ambient + diffuse + specular).xyz, 1.0);
+    if ( dot(L, N) < 0.0 ) {
+        specular = vec4(v_normal.xyz, 1.0);
+        diffuse = vec4(v_normal.xyz, 1.0);
+        ambient = vec4(v_normal.xyz,1.0);
+    }
+    vec4 what = vec4((ambient + diffuse + specular).xyz, 1.0);
+    color = what;
 }
