@@ -79,6 +79,7 @@ bool Object::loadAssImp(std::string path){
     indices.reserve(scene->mNumMeshes);
     vertices.reserve(scene->mNumMeshes);
     materials.reserve(scene->mNumMaterials);
+    materialIndices.reserve(scene->mNumMeshes);
     normals.reverve(scene->mNumMeshes);
     uvs.reserve(scene->mNumMeshes);
     colors.reserve(scene->mNumMeshes);
@@ -151,33 +152,67 @@ bool Object::loadAssImp(std::string path){
         //grab materialIndices
         if (scene->HasMaterials()) {
             //iterate through materials
-            for (unsigned int i = 0; i<scene)
-
+            materialIndices.push_back(mesh->mMaterialIndex);
         }
 
 
         //READ OVER
         //grab flattened indices here
         if ( mesh->HasFaces() ) {
-            std::vector< unsigned short > meshIndices;
+            std::vector< unsigned short > meshIndices;//per mesh, collect all faces (every 3 drawn as face)
             //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
-            meshIndices.reserve(3*mesh->mNumFaces);
-            for (unsigned int i=0; i<mesh->mNumFaces; i++) {
+            meshIndices.reserve(3*mesh->mNumFaces);//all traingulated
+            for (unsigned int i=0; i<mesh->mNumFaces; i++) {//per face
                 // The model should be all triangle since we triangulated
                 meshIndices.push_back(mesh->mFaces[i].mIndices[0]);
                 meshIndices.push_back(mesh->mFaces[i].mIndices[1]);
                 meshIndices.push_back(mesh->mFaces[i].mIndices[2]);
             }
-            indices.push_back(meshIndices);
+            indices.push_back(meshIndices);//all of the faces in mesh
+            meshIndices.clear();
         }
     }
     //load materials
     if (scene->HasMaterials()) {
+        Material temp;
         //iterate through materials
-        for (unsigned int i = 0; i<scene){
-
+        for (unsigned int i = 0; i<scene->mNumMaterials; i++) {
+            //store material properties: specular, diffuse, ambient, shine OR Default
+            //check diffuse exists
+            //std::cout<<"Has materials "<<std::endl;
+            aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
+            aiMaterial *mtl = scene->mMaterials[i];
+            aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diff);
+            temp.mtlDiff[0] = diff.r;
+            temp.mtlDiff[1] = diff.g;
+            temp.mtlDiff[2] = diff.b;
+            temp.mtlDiff[3] = diff.a;
+            std::cout<<"Diffuse: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
+            diff.r = diff.g = diff.b = 0.2;//default specular
+            diff.a = 1.0;
+            aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &diff);
+            temp.mtlSpec[0] = diff.r;
+            temp.mtlSpec[1] = diff.g;
+            temp.mtlSpec[2] = diff.b;
+            temp.mtlSpec[3] = diff.a;
+            std::cout<<"Specular: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
+            diff.r = diff.g = diff.b = 0.1;//default ambient
+            diff.a = 1.0;
+            aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &diff);
+            temp.mtlAmb[0] = diff.r;
+            temp.mtlAmb[1] = diff.g;
+            temp.mtlAmb[2] = diff.b;
+            temp.mtlAmb[3] = diff.a;
+            std::cout<<"Ambient: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
+            //shine
+            float shiny = 20;
+            aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shiny);
+            //why is shininess being returned as color4d, when assimp
+            //docs claim it should be a float...?
+            temp.mtlShine = shiny;
+            std::cout<<"Shine: "<<shiny<<std::endl;
+            materials.push_back(temp);
         }
-
     }
 
     //assume all's well if we make it here
@@ -345,35 +380,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         float mtlShine = 0.1;
         //std::cout<<"before materials "<<std::endl;
         checkError("after all buffers bound");
-        if (scene->HasMaterials()) {
-            //check diffuse exists
-            //std::cout<<"Has materials "<<std::endl;
-            aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
-            aiMaterial *mtl = scene->mMaterials[mesh->mMaterialIndex];
-            aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diff);
-            mtlDiff[0] = diff.r;
-            mtlDiff[1] = diff.g;
-            mtlDiff[2] = diff.b;
-            mtlDiff[3] = diff.a;
-            diff.r = diff.g = diff.b = 0.2;//default specular
-            aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &diff);
-            mtlSpec[0] = diff.r;
-            mtlSpec[1] = diff.g;
-            mtlSpec[2] = diff.b;
-            mtlSpec[3] = diff.a;
-            diff.r = diff.g = diff.b = 0.1;//default ambient
-            aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &diff);
-            mtlAmb[0] = diff.r;
-            mtlAmb[1] = diff.g;
-            mtlAmb[2] = diff.b;
-            mtlAmb[3] = diff.a;
-            //shine
-            diff.r = mtlShine;
-            aiGetMaterialColor(mtl, AI_MATKEY_SHININESS, &diff);
-            //why is shininess being returned as color4d, when assimp
-            //docs claim it should be a float...?
-            mtlShine = diff.r;
-        }
+        
         //glm::vec3 crap = glm::normalize(LightPosition - pos);
         /*for (unsigned int i=0; i<mesh->mNumVertices; i++) {
             //std::cout<<"Vert "<<mesh->mVertices[i][0]<<','<<mesh->mVertices[i][1]<<','<<mesh->mVertices[i][2]<<','<<std::endl;
