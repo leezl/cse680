@@ -59,7 +59,7 @@ class Object {
     std::vector< std::vector< glm::vec4 > > normals;
     std::vector< std::vector< glm::vec3 > > uvs;
     std::vector< std::vector< glm::vec4 > > colors;
-    std::vector< unsigned short > materialIndices;
+    std::vector< unsigned int > materialIndices;
     //Mode of draw: elements
     GLenum ErrorCheckValue;
     void checkError(std::string where);

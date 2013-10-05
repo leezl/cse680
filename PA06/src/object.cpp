@@ -155,11 +155,9 @@ bool Object::loadAssImp(std::string path){
             materialIndices.push_back(mesh->mMaterialIndex);
         }
 
-
-        //READ OVER
         //grab flattened indices here
         if ( mesh->HasFaces() ) {
-            std::vector< unsigned short > meshIndices;//per mesh, collect all faces (every 3 drawn as face)
+            std::vector< unsigned int > meshIndices;//per mesh, collect all faces (every 3 drawn as face)
             //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
             meshIndices.reserve(3*mesh->mNumFaces);//all traingulated
             for (unsigned int i=0; i<mesh->mNumFaces; i++) {//per face
@@ -182,39 +180,39 @@ bool Object::loadAssImp(std::string path){
             //std::cout<<"Has materials "<<std::endl;
             aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
             aiMaterial *mtl = scene->mMaterials[i];
+            //using c interface instead of c++ here, because c++ wasn't working...not sure why
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diff);
-            temp.mtlDiff[0] = diff.r;
-            temp.mtlDiff[1] = diff.g;
-            temp.mtlDiff[2] = diff.b;
-            temp.mtlDiff[3] = diff.a;
+            temp.diff[0] = diff.r;
+            temp.diff[1] = diff.g;
+            temp.diff[2] = diff.b;
+            temp.diff[3] = diff.a;
             std::cout<<"Diffuse: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             diff.r = diff.g = diff.b = 0.2;//default specular
             diff.a = 1.0;
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &diff);
-            temp.mtlSpec[0] = diff.r;
-            temp.mtlSpec[1] = diff.g;
-            temp.mtlSpec[2] = diff.b;
-            temp.mtlSpec[3] = diff.a;
+            temp.spec[0] = diff.r;
+            temp.spec[1] = diff.g;
+            temp.spec[2] = diff.b;
+            temp.spec[3] = diff.a;
             std::cout<<"Specular: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             diff.r = diff.g = diff.b = 0.1;//default ambient
             diff.a = 1.0;
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &diff);
-            temp.mtlAmb[0] = diff.r;
-            temp.mtlAmb[1] = diff.g;
-            temp.mtlAmb[2] = diff.b;
-            temp.mtlAmb[3] = diff.a;
+            temp.amb[0] = diff.r;
+            temp.amb[1] = diff.g;
+            temp.amb[2] = diff.b;
+            temp.amb[3] = diff.a;
             std::cout<<"Ambient: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             //shine
             float shiny = 20;
             aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shiny);
             //why is shininess being returned as color4d, when assimp
             //docs claim it should be a float...?
-            temp.mtlShine = shiny;
+            temp.shine = shiny;
             std::cout<<"Shine: "<<shiny<<std::endl;
             materials.push_back(temp);
         }
     }
-
     //assume all's well if we make it here
     return true;
 }
@@ -223,9 +221,6 @@ void Object::initializeObject(){
     //std::cout<<"Initializing Object"<<std::endl;
     //gen buffers
     //have to draw each material group of faces separately: lighting
-    if (scene == NULL) {
-        std::cout<<"The scene points nowhere."<<std::endl;
-    }
     //can we avoid all this duplication?
     //glGenBuffers (scene->mNumMeshes, &elementBuffers );?
     elementBuffers.reserve(scene->mNumMeshes);
@@ -242,7 +237,7 @@ void Object::initializeObject(){
             //set element buffer data
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spare);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices[j].size() * sizeof(unsigned short), &indices[j][0], GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices[j].size() * sizeof(unsigned int), &indices[j][0], GL_STATIC_DRAW);
             elementBuffers.push_back(spare); 
 
             checkError("setting element data");
@@ -375,45 +370,25 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }
 
         //Light calculations as necessary
-        //check if material properties exist, else default values
-        glm::vec4 mtlAmb, mtlDiff, mtlSpec;
-        float mtlShine = 0.1;
+
+        
         //std::cout<<"before materials "<<std::endl;
         checkError("after all buffers bound");
-        
-        //glm::vec3 crap = glm::normalize(LightPosition - pos);
-        /*for (unsigned int i=0; i<mesh->mNumVertices; i++) {
-            //std::cout<<"Vert "<<mesh->mVertices[i][0]<<','<<mesh->mVertices[i][1]<<','<<mesh->mVertices[i][2]<<','<<std::endl;
-            //std::cout<<mesh->mNormals[i][0]<<','<<mesh->mNormals[i][1]<<','<<mesh->mNormals[i][2]<<','<<std::endl;
-            glm::vec3 N = glm::normalize(glm::vec3(mesh->mNormals[i][0],mesh->mNormals[i][1],mesh->mNormals[i][2]));
-            glm::vec3 L = glm::vec3(light.lightPos[0], light.lightPos[1], light.lightPos[2]) - 
-                glm::vec3(mesh->mVertices[i][0], mesh->mVertices[i][1], mesh->mVertices[i][2]);
-            float dotter = glm::dot(N, L);
-            //std::cout<<"Calc: "<<dotter<<std::endl;
-            glColor3i(1.0,1.0,0.0);
-            glBegin(GL_LINES);
-            glVertex3f(mesh->mVertices[i][0]+0.5, mesh->mVertices[i][1]+0.5, mesh->mVertices[i][2]+0.5); // origin of the line
-            glVertex3f(mesh->mNormals[i][0], mesh->mNormals[i][1], mesh->mNormals[i][2]); // ending point of the line
-            glEnd( );
-        }*/
         //std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
         checkError("pre-ambient Send");
-        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.lightAmb*mtlAmb));
+        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.lightAmb*materials[materialIndices[j]].amb));
         checkError("pre-specular send");
-        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.lightSpec*mtlSpec));
+        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.lightSpec*materials[materialIndices[j]].spec));
         checkError("pre-diffuse send");
-        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.lightDiff*mtlDiff));
+        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.lightDiff*materials[materialIndices[j]].diff));
         checkError("pre-shine send");
-        glUniform1f(lightin.loc_Shin, mtlShine);//ref
+        glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
         checkError("pre-element buffer bind");
 
         //draw elements
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffers[j]);
         checkError("pre-element draw");
-        /*for (unsigned int i = 0; i<indices[j].size(); i++) {
-            std::cout<<indices[j][i]<<std::endl;
-        }*/
-        glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_SHORT, (void*)0);
+        glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_INT, (void*)0);
         checkError("Post element draw");
     }
 }
