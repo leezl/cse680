@@ -30,11 +30,19 @@ Keep in Assimp aiScene: store the aiScene, and iterate through it in the draw fu
 */
 
 struct Light {
-    glm::vec4 lightPos;
-    glm::vec4 lightAmb;
-    glm::vec4 lightDiff;
-    glm::vec4 lightSpec;
+    glm::vec4 pos;
+    glm::vec4 amb;
+    glm::vec4 diff;
+    glm::vec4 spec;
 };
+
+struct Material {
+    float shine;
+    glm::vec4 amb;
+    glm::vec4 diff;
+    glm::vec4 spec;
+};
+
 struct LightLoc {
     GLint loc_AmbProd, loc_LightPos, loc_Shin, loc_DiffProd, loc_SpecProd;
 };
@@ -43,11 +51,18 @@ struct LightLoc {
 class Object {
   private:
     std::vector<GLuint> elementBuffers, geometryBuffers, normalBuffers, colorBuffers, textureBuffers;
-    aiScene * scene;
+    //aiScene * scene;
+    //following are vectors of meshes: separate mesh per material
+    std::vector< Material > materials;
     std::vector< std::vector<unsigned short> > indices; //by mesh; flattens faces out
+    std::vector< std::vector< glm::vec4 > > vertices;
+    std::vector< std::vector< glm::vec4 > > normals;
+    std::vector< std::vector< glm::vec3 > > uvs;
+    std::vector< std::vector< glm::vec4 > > colors;
+    std::vector< unsigned short > materialIndices;
     //Mode of draw: elements
     GLenum ErrorCheckValue;
-    void checkError();
+    void checkError(std::string where);
     bool loadAssImp(std::string path);
     
   public:

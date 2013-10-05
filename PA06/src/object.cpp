@@ -17,12 +17,6 @@ Object::Object(std::string path, std::string filename){
         printf("Error Loading Object File with Assimp.\n");
         exit(-1);
     }
-    /*std::cout<<center[0]<<' '<<center[1]<<' '<<center[2]<<std::endl;
-    std::cout<<"Number of indices "<<indices.size()<<std::endl;
-    for (std::vector<unsigned short>::iterator it=indices.begin(); it!=indices.end(); it++) {
-        std::cout<<(*it)<<',';
-    }
-    std::cout<<std::endl;*/
 }
 
 Object::~Object(){
@@ -48,7 +42,7 @@ void Object::cleanUp(){
     }
 }
 
-void Object::checkError(){
+void Object::checkError(std::string where=" "){
     ErrorCheckValue = glGetError();
     //std::cout<<"Checking Error"<<std::endl;
     if (ErrorCheckValue != GL_NO_ERROR)
@@ -56,7 +50,7 @@ void Object::checkError(){
         //std::cout<<"Error occured "<<std::endl;
         fprintf(
             stderr,
-            "ERROR: Binding some element: %s \n",
+            "ERROR: %s: %s \n", where.c_str(),
             gluErrorString(ErrorCheckValue)
         );
         exit(-1);
@@ -74,20 +68,32 @@ bool Object::loadAssImp(std::string path){
     // read file into scene object
     // possible flags:
     // triangles, and normal important. others probably won't do much (vertex normals)
-    const aiScene *scener = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_OptimizeMeshes 
-        | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals );
-    aiCopyScene(scener, &scene);
+    const aiScene *scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals );
+    //aiCopyScene(scener, &scene);
     //check if it worked:
     if( !scene) {
         fprintf( stderr, importer.GetErrorString());
         return false;
     }
+    //reserve space for each mesh (and mat)
     indices.reserve(scene->mNumMeshes);
+    vertices.reserve(scene->mNumMeshes);
+    materials.reserve(scene->mNumMaterials);
+    normals.reverve(scene->mNumMeshes);
+    uvs.reserve(scene->mNumMeshes);
+    colors.reserve(scene->mNumMeshes);
+
+    //iterate through each mesh (and mat) and collect
     for (unsigned int j = 0; j<scene->mNumMeshes; j++) {
         const aiMesh* mesh = scene->mMeshes[j];
         //find center, min and max for camera positioning
+        std::vector<glm::vec4> localVert;
+        std::vector<glm::vec3> localUV;
+        aiVector3D pos;
+        localVert.reserve(mesh->mNumVertices);
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
-            aiVector3D pos = mesh->mVertices[i];
+            pos = mesh->mVertices[i];
+            localVert.push_back(glm::vec4(pos.x, pos.y, pos.z, 1.0));
             if (pos.x>max[0]) {
                 max[0] = pos.x;
             } else if ( pos.x<min[0] ) {
@@ -104,10 +110,57 @@ bool Object::loadAssImp(std::string path){
                 min[2] = pos.z;
             }
         }
-        //flatten indices here so we can ignore them later
+        //add this mesh
+        vertices.push_back(localVert);
+        //clear to be used again or just free space
+        localVert.clear();
+
+        //grab normals
+        localVert.reserve(mesh->mNumVertices);//make sure still reserved
+        if (mesh->HasNormals()) {
+            for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+                pos = mesh->mNormals[i];
+                localVert.push_back(glm::vec4(pos.x, pos.y, pos.z, 0.0));
+            }
+            normals.push_back(localVert);
+            localVert.clear();
+        }
+
+        //grab colors
+        localVert.reserve(mesh->mNumVertices);//make sure still reserved
+        if ( 0 < mesh->GetNumColorChannels()) {
+            for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+                aiColor4D color = mesh->mColors[0][i];
+                localVert.push_back(glm::vec4(color.r, color.g, color.b, color.a));
+            }
+            colors.push_back(localVert);
+            localVert.clear();
+        }
+
+        //grab uvs
+        localUV.reserve(mesh->mNumVertices);
+        if (0 < mesh->GetNumUVChannels()) {
+            for(unsigned int i=0; i<mesh->mNumVertices; i++) {
+                pos = mesh->mTextureCoords[0][i];
+                localUV.push_back(glm::vec3(pos.x, pos.y, pos.z));
+            }
+            uvs.push_back(localUV);
+            localUV.clear();
+        }
+
+        //grab materialIndices
+        if (scene->HasMaterials()) {
+            //iterate through materials
+            for (unsigned int i = 0; i<scene)
+
+        }
+
+
+        //READ OVER
+        //grab flattened indices here
         if ( mesh->HasFaces() ) {
             std::vector< unsigned short > meshIndices;
-            std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
+            //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
             meshIndices.reserve(3*mesh->mNumFaces);
             for (unsigned int i=0; i<mesh->mNumFaces; i++) {
                 // The model should be all triangle since we triangulated
@@ -118,13 +171,21 @@ bool Object::loadAssImp(std::string path){
             indices.push_back(meshIndices);
         }
     }
+    //load materials
+    if (scene->HasMaterials()) {
+        //iterate through materials
+        for (unsigned int i = 0; i<scene){
+
+        }
+
+    }
 
     //assume all's well if we make it here
     return true;
 }
 
 void Object::initializeObject(){
-    std::cout<<"Initializing Object"<<std::endl;
+    //std::cout<<"Initializing Object"<<std::endl;
     //gen buffers
     //have to draw each material group of faces separately: lighting
     if (scene == NULL) {
@@ -142,14 +203,14 @@ void Object::initializeObject(){
         const aiMesh* mesh = scene->mMeshes[j];
 
         if ( mesh->HasFaces() ) {
-            std::cout<<"Setting Element Buffer"<<std::endl;
+            //std::cout<<"Setting Element Buffer"<<std::endl;
             //set element buffer data
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spare);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices[j].size() * sizeof(unsigned short), &indices[j][0], GL_STATIC_DRAW);
             elementBuffers.push_back(spare); 
 
-            checkError();
+            checkError("setting element data");
         } else {
             elementBuffers.push_back(0);
         }
@@ -157,21 +218,21 @@ void Object::initializeObject(){
         //set vertices
         if (mesh->HasPositions()) {
             glEnableClientState(GL_VERTEX_ARRAY);
-            std::cout<<"Setting Vertex Buffer"<<std::endl;
+            //std::cout<<"Setting Vertex Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
-            glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * sizeof(aiVector3D), &mesh->mVertices[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices[j].size() * sizeof(glm::vec3), &vertices[j][0], GL_STATIC_DRAW);
             geometryBuffers.push_back(spare);
-            checkError();
+            checkError("setting vertex data");
         } else {
             geometryBuffers.push_back(0);
         }
         //check for normals
         if (mesh->HasNormals()) {
-            std::cout<<"Setting Normals Buffer"<<std::endl;
+            //std::cout<<"Setting Normals Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
-            glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * sizeof(aiVector3D), &mesh->mNormals[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[j][0], GL_STATIC_DRAW);
             normalBuffers.push_back(spare);
         } else {
             normalBuffers.push_back(0);
@@ -179,11 +240,11 @@ void Object::initializeObject(){
 
         //check for uvs
         if (0 < mesh->GetNumUVChannels()) {
-            std::cout<<"Setting UVs Buffer"<<std::endl;
+            //std::cout<<"Setting UVs Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //not prepared to handle several textures.
-            glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * sizeof(aiVector3D), &mesh->mTextureCoords[0][0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec3), &uvs[j][0], GL_STATIC_DRAW);
             textureBuffers.push_back(spare);
         } else {
             textureBuffers.push_back(0);
@@ -191,13 +252,13 @@ void Object::initializeObject(){
 
         //check colors
         if ( 0 < mesh->GetNumColorChannels()) {
-            std::cout<<"Setting Colors Buffer"<<std::endl;
+            //std::cout<<"Setting Colors Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //not prepared to handle several colors either...
-            glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * sizeof(aiColor4D), &mesh->mColors[0][0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[j][0], GL_STATIC_DRAW);
             colorBuffers.push_back(spare);
-            checkError();
+            checkError("setting color buffer");
         } else if (scene->HasMaterials()) {
             //nothing here, more in draw
             colorBuffers.push_back(0);
@@ -207,12 +268,8 @@ void Object::initializeObject(){
         }
 
         //error checker (GLU)
-        checkError();
-
-        std::cout<<"Element Buffer Size "<<elementBuffers.size()<<std::endl;
+        checkError("After Initializing a mesh");
     }
-    //check that lengths are correct
-    std::cout<<scene->mNumMeshes<<' '<<elementBuffers.size()<<' '<<geometryBuffers.size()<<' '<<normalBuffers.size()<<' '<<std::endl;
 }
 
 void Object::drawObject(GLint loc_position, GLint loc_normal, 
@@ -221,8 +278,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
     //bind buffers
     //std::cout<<"Drawing Object"<<std::endl;
     //iterate through all meshes (per material lighting and shading)
-    for (unsigned int j = 0; j<scene->mNumMeshes; j++) {
-        const aiMesh* mesh = scene->mMeshes[j];
+    for (unsigned int j = 0; j<indices.size(); j++) {
         //set vertices
         //if you don't have these, soemthing is seriously wrong
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffers[j]);
@@ -233,11 +289,11 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
                               GL_FALSE,  // normalized?
                               0,//sizeof(glm::vec3),  // stride
                               (void*)0);  // offset
-        checkError();
+        checkError("after geometry buffer bound");
 
         //check for normals
-        if (mesh->HasNormals() && loc_normal!=-1) {
-            std::cout<<"using Normals"<<std::endl;
+        if (normals.size()>0 && loc_normal!=-1) {
+            //std::cout<<"using Normals"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
             glVertexAttribPointer(loc_normal,  // location of attribute
                               3,  // number of elements
@@ -251,11 +307,11 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }
 
         //check for uvs
-        if (0 < mesh->GetNumUVChannels() && loc_uv!=-1) {
-            std::cout<<"using Uvs"<<std::endl;
+        if (uvs.size()>0 && loc_uv!=-1) {
+            //std::cout<<"using Uvs"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, textureBuffers[j]);
             glVertexAttribPointer(loc_uv,  // location of attribute
-                              2,  // number of elements
+                              3,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
                               0,//sizeof(glm::vec2),  // stride
@@ -266,8 +322,8 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }
 
         //check colors
-        if (0 < mesh->GetNumColorChannels() && loc_color!=-1) {
-            std::cout<<"using colors"<<std::endl;
+        if (colors.size()>0 && loc_color!=-1) {
+            //std::cout<<"using colors"<<std::endl;
             glEnableVertexAttribArray(loc_color);
             glBindBuffer(GL_ARRAY_BUFFER, colorBuffers[j]);
             glVertexAttribPointer(loc_color,
@@ -276,7 +332,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
                               GL_FALSE,
                               0,//sizeof(glm::vec4),
                               (void*)0);
-            checkError();
+            checkError("after color bound");
         } else {
             //std::cout<<"clearing for colors"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -287,12 +343,12 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         //check if material properties exist, else default values
         glm::vec4 mtlAmb, mtlDiff, mtlSpec;
         float mtlShine = 0.1;
-        std::cout<<"before materials "<<std::endl;
-        checkError();
+        //std::cout<<"before materials "<<std::endl;
+        checkError("after all buffers bound");
         if (scene->HasMaterials()) {
             //check diffuse exists
-            std::cout<<"Has materials "<<std::endl;
-            aiColor4D diff(0.8f,0.8f,0.8f, 1.0f);//default diffuse
+            //std::cout<<"Has materials "<<std::endl;
+            aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
             aiMaterial *mtl = scene->mMaterials[mesh->mMaterialIndex];
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diff);
             mtlDiff[0] = diff.r;
@@ -318,86 +374,39 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
             //docs claim it should be a float...?
             mtlShine = diff.r;
         }
-        std::cout<<"specular "<<(light.lightSpec*mtlSpec)[0]<<' '<<
-            (light.lightSpec*mtlSpec)[1]<<' '<<(light.lightSpec*mtlSpec)[2]<<std::endl;
-        std::cout<<"diffuse "<<(light.lightDiff*mtlDiff)[0]<<' '<<
-            (light.lightDiff*mtlDiff)[1]<<' '<<(light.lightDiff*mtlDiff)[2]<<std::endl;
         //glm::vec3 crap = glm::normalize(LightPosition - pos);
-        for (unsigned int i=0; i<mesh->mNumVertices; i++) {
-            std::cout<<"Vert "<<mesh->mVertices[i][0]<<','<<mesh->mVertices[i][1]<<','<<mesh->mVertices[i][2]<<','<<std::endl;
-            std::cout<<mesh->mNormals[i][0]<<','<<mesh->mNormals[i][1]<<','<<mesh->mNormals[i][2]<<','<<std::endl;
+        /*for (unsigned int i=0; i<mesh->mNumVertices; i++) {
+            //std::cout<<"Vert "<<mesh->mVertices[i][0]<<','<<mesh->mVertices[i][1]<<','<<mesh->mVertices[i][2]<<','<<std::endl;
+            //std::cout<<mesh->mNormals[i][0]<<','<<mesh->mNormals[i][1]<<','<<mesh->mNormals[i][2]<<','<<std::endl;
             glm::vec3 N = glm::normalize(glm::vec3(mesh->mNormals[i][0],mesh->mNormals[i][1],mesh->mNormals[i][2]));
             glm::vec3 L = glm::vec3(light.lightPos[0], light.lightPos[1], light.lightPos[2]) - 
                 glm::vec3(mesh->mVertices[i][0], mesh->mVertices[i][1], mesh->mVertices[i][2]);
             float dotter = glm::dot(N, L);
-            std::cout<<"Calc: "<<dotter<<std::endl;
-            glColor3i(1.0,0.0,0.0);
-            /*glBegin(GL_LINES);
-            glVertex3f(mesh->mVertices[i][0], mesh->mVertices[i][1], mesh->mVertices[i][2]); // origin of the line
+            //std::cout<<"Calc: "<<dotter<<std::endl;
+            glColor3i(1.0,1.0,0.0);
+            glBegin(GL_LINES);
+            glVertex3f(mesh->mVertices[i][0]+0.5, mesh->mVertices[i][1]+0.5, mesh->mVertices[i][2]+0.5); // origin of the line
             glVertex3f(mesh->mNormals[i][0], mesh->mNormals[i][1], mesh->mNormals[i][2]); // ending point of the line
-            glEnd( );*/
-        }
-        std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
-        char argh;
-        std::cin>>argh;
-        /*
-        specular 1 0.8 0
-        diffuse 1 0.8 0
-        Vert 1,-1,-1,
-        0.57735,-0.57735,-0.57735,
-        Calc: -4.04145
-        Vert 1,-1,1,
-        0.57735,-0.57735,0.57735,
-        Calc: -1.73205
-        Vert -1,-1,1,
-        -0.57735,-0.57735,0.57735,
-        Calc: -2.88675
-        Vert -1,-1,-1,
-        -0.57735,-0.57735,-0.57735,
-        Calc: -5.19615
-        Vert 1,1,-0.999999,
-        0.57735,0.577351,-0.57735,
-        Calc: -0.577348
-        Vert -1,1,-1,
-        -0.57735,0.57735,-0.57735,
-        Calc: -1.73205
-        Vert -1,1,1,
-        -0.57735,0.57735,0.57735,
-        Calc: 0.57735
-        Vert 0.999999,1,1,
-        0.57735,0.57735,0.57735,
-        Calc: 1.73205
-        Light 1 3 2
-        */
-        std::cout<<"setting color params "<<std::endl;
-        checkError();
+            glEnd( );
+        }*/
+        //std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
+        checkError("pre-ambient Send");
         glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.lightAmb*mtlAmb));
-        std::cout<<"specular "<<std::endl;
-        checkError();
+        checkError("pre-specular send");
         glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.lightSpec*mtlSpec));
-        std::cout<<"diffuse "<<std::endl;
-        checkError();
+        checkError("pre-diffuse send");
         glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.lightDiff*mtlDiff));
-        std::cout<<"shine "<<std::endl;
-        checkError();
+        checkError("pre-shine send");
         glUniform1f(lightin.loc_Shin, mtlShine);//ref
-        std::cout<<"after "<<std::endl;
-        checkError();
+        checkError("pre-element buffer bind");
 
         //draw elements
-        /*if (!hasFaces) {
-            std::cout<<"HAS NO FACES"<<std::endl;
-        }*/
-        std::cout<<"binding element buffer "<<j<<"  "<<elementBuffers[j]<<std::endl;
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffers[j]);
-        checkError();
-        std::cout<<"drawing elements "<<indices[j].size()<<std::endl;
-        for (unsigned int i = 0; i<indices[j].size(); i++) {
+        checkError("pre-element draw");
+        /*for (unsigned int i = 0; i<indices[j].size(); i++) {
             std::cout<<indices[j][i]<<std::endl;
-        }
-        std::cout<<mesh->mNumVertices<<std::endl;
+        }*/
         glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_SHORT, (void*)0);
-        std::cout<<"After Draw"<<std::endl;
-        checkError();
+        checkError("Post element draw");
     }
 }
