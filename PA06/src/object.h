@@ -54,7 +54,7 @@ class Object {
     //aiScene * scene;
     //following are vectors of meshes: separate mesh per material
     std::vector< Material > materials;
-    std::vector< std::vector<unsigned short> > indices; //by mesh; flattens faces out
+    std::vector< std::vector<unsigned int> > indices; //by mesh; flattens faces out
     std::vector< std::vector< glm::vec4 > > vertices;
     std::vector< std::vector< glm::vec4 > > normals;
     std::vector< std::vector< glm::vec3 > > uvs;

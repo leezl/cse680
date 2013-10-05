@@ -162,7 +162,7 @@ void render() {
     glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(light.lightPos));
+    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(light.pos));
 
     //enable attributes
     glEnableVertexAttribArray(loc_position);
@@ -407,10 +407,10 @@ bool initialize() {
     height = max[1]+(0.5*(max[1]-min[1]));
     //ensure light outside of object
     //Add a default light; assume single light for now
-    light.lightPos = glm::vec4(0.0f+(0.5*(max[2]-min[2])), height+(0.5*(max[1]-min[1])), dist, 1.0f);
-    light.lightAmb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    light.lightDiff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    light.lightSpec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
+    light.pos = glm::vec4(0.0f+(0.5*(max[2]-min[2])), height+(0.5*(max[1]-min[1])), dist, 1.0f);
+    light.amb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    light.diff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    light.spec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
 
     //ensure camera outside of object
     view = glm::lookAt(glm::vec3(0.0, height, dist),  // Eye Position

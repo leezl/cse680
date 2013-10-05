@@ -1,5 +1,5 @@
-attribute vec3 v_position;
-attribute vec3 v_normal;
+attribute vec4 v_position;
+attribute vec4 v_normal;
 varying vec4 color;
 
 uniform mat4 M;
@@ -13,11 +13,11 @@ void main(void){
     vec4 diffuse, specular, ambient;
 
     //positioning
-    vec3 pos = (V * M * vec4(v_position, 1.0)).xyz;
-    gl_Position = P * V * M * vec4(v_position, 1.0);
+    vec3 pos = (V * M * v_position).xyz;
+    gl_Position = P * V * M * v_position;
 
     //shading
-    vec3 N = normalize(V * M * vec4(v_normal, 0.0)).xyz;
+    vec3 N = normalize(V * M * v_normal).xyz;
     vec3 L = normalize(LightPosition.xyz - pos);
     vec3 E = normalize(-pos);
     vec3 H = normalize(L+E);

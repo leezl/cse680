@@ -7,7 +7,6 @@ Liesl Wigand
 #include "object.h"
 
 Object::Object(std::string path, std::string filename){
-    scene=NULL;
     std::cout<<"Creating Object"<<std::endl;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
@@ -80,7 +79,7 @@ bool Object::loadAssImp(std::string path){
     vertices.reserve(scene->mNumMeshes);
     materials.reserve(scene->mNumMaterials);
     materialIndices.reserve(scene->mNumMeshes);
-    normals.reverve(scene->mNumMeshes);
+    normals.reserve(scene->mNumMeshes);
     uvs.reserve(scene->mNumMeshes);
     colors.reserve(scene->mNumMeshes);
 
@@ -95,6 +94,7 @@ bool Object::loadAssImp(std::string path){
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
             pos = mesh->mVertices[i];
             localVert.push_back(glm::vec4(pos.x, pos.y, pos.z, 1.0));
+            //std::cout<<"Vertices:  "<<pos.x<<','<<pos.y<<','<<pos.z<<std::endl;
             if (pos.x>max[0]) {
                 max[0] = pos.x;
             } else if ( pos.x<min[0] ) {
@@ -113,6 +113,7 @@ bool Object::loadAssImp(std::string path){
         }
         //add this mesh
         vertices.push_back(localVert);
+        //std::cout<<"Number of vertice sin this mesh "<<localVert.size()<<std::endl;
         //clear to be used again or just free space
         localVert.clear();
 
@@ -122,6 +123,7 @@ bool Object::loadAssImp(std::string path){
             for(unsigned int i=0; i<mesh->mNumVertices; i++) {
                 pos = mesh->mNormals[i];
                 localVert.push_back(glm::vec4(pos.x, pos.y, pos.z, 0.0));
+                //std::cout<<"Normals:  "<<pos.x<<','<<pos.y<<','<<pos.z<<std::endl;
             }
             normals.push_back(localVert);
             localVert.clear();
@@ -161,13 +163,21 @@ bool Object::loadAssImp(std::string path){
             //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
             meshIndices.reserve(3*mesh->mNumFaces);//all traingulated
             for (unsigned int i=0; i<mesh->mNumFaces; i++) {//per face
+                int offset = meshIndices.size();
                 // The model should be all triangle since we triangulated
+                //std::cout<<"number of indices in face: "<<mesh->mFaces[i].mNumIndices<<std::endl;
                 meshIndices.push_back(mesh->mFaces[i].mIndices[0]);
                 meshIndices.push_back(mesh->mFaces[i].mIndices[1]);
                 meshIndices.push_back(mesh->mFaces[i].mIndices[2]);
+                //std::cout<<"Indices in Face: "<<mesh->mFaces[i].mIndices[0]<<','<<mesh->mFaces[i].mIndices[1]<<','<<mesh->mFaces[i].mIndices[2]<<std::endl;
             }
+            //std::cout<<"Size of indices for this mesh "<<meshIndices.size()<<std::endl;
             indices.push_back(meshIndices);//all of the faces in mesh
             meshIndices.clear();
+        }
+        for (int i =0; i<indices[j].size(); i++) {
+            std::cout<<"Indices "<<indices[j][i]<<std::endl;
+            std::cout<<"Vertices "<<vertices[j][indices[j][i]].x<<','<<vertices[j][indices[j][i]].y<<','<<vertices[j][indices[j][i]].z<<std::endl;
         }
     }
     //load materials
@@ -213,6 +223,8 @@ bool Object::loadAssImp(std::string path){
             materials.push_back(temp);
         }
     }
+
+
     //assume all's well if we make it here
     return true;
 }
@@ -223,16 +235,14 @@ void Object::initializeObject(){
     //have to draw each material group of faces separately: lighting
     //can we avoid all this duplication?
     //glGenBuffers (scene->mNumMeshes, &elementBuffers );?
-    elementBuffers.reserve(scene->mNumMeshes);
-    geometryBuffers.reserve(scene->mNumMeshes);
-    normalBuffers.reserve(scene->mNumMeshes);
-    colorBuffers.reserve(scene->mNumMeshes);
-    textureBuffers.reserve(scene->mNumMeshes);
+    elementBuffers.reserve(indices.size());
+    geometryBuffers.reserve(indices.size());
+    normalBuffers.reserve(indices.size());
+    colorBuffers.reserve(indices.size());
+    textureBuffers.reserve(indices.size());
     GLuint spare;
-    for (unsigned int j = 0; j<scene->mNumMeshes; j++) {
-        const aiMesh* mesh = scene->mMeshes[j];
-
-        if ( mesh->HasFaces() ) {
+    for (unsigned int j = 0; j<indices.size(); j++) {
+        if ( indices.size()>j ) {
             //std::cout<<"Setting Element Buffer"<<std::endl;
             //set element buffer data
             glGenBuffers(1, &spare);
@@ -246,30 +256,30 @@ void Object::initializeObject(){
         }
 
         //set vertices
-        if (mesh->HasPositions()) {
+        if (vertices.size()>j) {
             glEnableClientState(GL_VERTEX_ARRAY);
             //std::cout<<"Setting Vertex Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
-            glBufferData(GL_ARRAY_BUFFER, vertices[j].size() * sizeof(glm::vec3), &vertices[j][0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices[j].size() * sizeof(glm::vec4), &vertices[j][0], GL_STATIC_DRAW);
             geometryBuffers.push_back(spare);
             checkError("setting vertex data");
         } else {
             geometryBuffers.push_back(0);
         }
         //check for normals
-        if (mesh->HasNormals()) {
+        if (normals.size()>j) {
             //std::cout<<"Setting Normals Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
-            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[j][0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec4), &normals[j][0], GL_STATIC_DRAW);
             normalBuffers.push_back(spare);
         } else {
             normalBuffers.push_back(0);
         }
 
         //check for uvs
-        if (0 < mesh->GetNumUVChannels()) {
+        if (uvs.size()>j) {
             //std::cout<<"Setting UVs Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
@@ -281,7 +291,7 @@ void Object::initializeObject(){
         }
 
         //check colors
-        if ( 0 < mesh->GetNumColorChannels()) {
+        if ( colors.size()>j) {
             //std::cout<<"Setting Colors Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
@@ -289,7 +299,7 @@ void Object::initializeObject(){
             glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[j][0], GL_STATIC_DRAW);
             colorBuffers.push_back(spare);
             checkError("setting color buffer");
-        } else if (scene->HasMaterials()) {
+        } else if (materials.size()>0) {
             //nothing here, more in draw
             colorBuffers.push_back(0);
         } else {
@@ -314,7 +324,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffers[j]);
         // set pointers into the vbo for each of the attributes(position and color)
         glVertexAttribPointer(loc_position,  // location of attribute
-                              3,  // number of elements
+                              4,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
                               0,//sizeof(glm::vec3),  // stride
@@ -326,7 +336,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
             //std::cout<<"using Normals"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
             glVertexAttribPointer(loc_normal,  // location of attribute
-                              3,  // number of elements
+                              4,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
                               0,//sizeof(glm::vec3),  // stride
@@ -376,11 +386,11 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         checkError("after all buffers bound");
         //std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
         checkError("pre-ambient Send");
-        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.lightAmb*materials[materialIndices[j]].amb));
+        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
         checkError("pre-specular send");
-        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.lightSpec*materials[materialIndices[j]].spec));
+        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
         checkError("pre-diffuse send");
-        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.lightDiff*materials[materialIndices[j]].diff));
+        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
         checkError("pre-shine send");
         glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
         checkError("pre-element buffer bind");
