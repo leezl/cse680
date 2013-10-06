@@ -186,7 +186,7 @@ bool Object::loadAssImp(std::string path){
         for (unsigned int i = 0; i<scene->mNumMaterials; i++) {
             //store material properties: specular, diffuse, ambient, shine OR Default
             //check diffuse exists
-            std::cout<<"Has materials "<<std::endl;
+            //std::cout<<"Has materials "<<std::endl;
             aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
             aiMaterial *mtl = scene->mMaterials[i];
             //using c interface instead of c++ here, because c++ wasn't working...not sure why
@@ -242,7 +242,7 @@ void Object::initializeObject(){
     GLuint spare;
     for (unsigned int j = 0; j<indices.size(); j++) {
         if ( indices.size()>j ) {
-            std::cout<<"Setting Element Buffer "<<std::endl;
+            //std::cout<<"Setting Element Buffer "<<std::endl;
             //set element buffer data
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spare);
@@ -256,7 +256,7 @@ void Object::initializeObject(){
         //set vertices
         if (vertices.size()>j) {
             glEnableClientState(GL_VERTEX_ARRAY);
-            std::cout<<"Setting Vertex Buffer"<<std::endl;
+            //std::cout<<"Setting Vertex Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //std::cout<<"number of vertices "<<vertices[j].size()<<std::endl;
@@ -268,9 +268,9 @@ void Object::initializeObject(){
         }
         //check for normals
         if (normals.size()>j) {
-            std::cout<<"Setting Normals Buffer "<<std::endl;
+            //std::cout<<"Setting Normals Buffer "<<std::endl;
             glGenBuffers(1, &spare);
-            std::cout<<"normal buffer "<<spare<<std::endl;
+            //std::cout<<"normal buffer "<<spare<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //std::cout<<"number of normals "<<normals[j].size()<<std::endl;
             glBufferData(GL_ARRAY_BUFFER, normals[j].size() * sizeof(glm::vec3), &normals[j][0], GL_STATIC_DRAW);
@@ -321,20 +321,23 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
     //std::cout<<elementBuffers.size()<<','<<indices.size()<<','<<geometryBuffers.size()<<','<<normalBuffers.size()<<std::endl;
     //iterate through all meshes (per material lighting and shading)
     for (unsigned int j = 0; j<indices.size(); j++) {
-        //Light calculations as necessary
-        /*std::cout<<"before materials "<<std::endl;
-        checkError("after all buffers bound");
-        //std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
-        checkError("pre-ambient Send");
-        glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
-        checkError("pre-specular send");
-        glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
-        checkError("pre-diffuse send");
-        glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
-        checkError("pre-shine send");
-        glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
-        checkError("pre-element buffer bind");*/
-        //std::cout<<(light.spec*materials[materialIndices[j]].spec)[0]<<','<<(light.spec*materials[materialIndices[j]].spec)[1]<<','<<(light.spec*materials[materialIndices[j]].spec)[2]<<std::endl;
+        if (materialIndices.size()>j && materials.size()>materialIndices[j]) {
+          //Light calculations as necessary
+          //std::cout<<"before materials "<<std::endl;
+          //checkError("after all buffers bound");
+          //checkError("pre-ambient Send");
+          glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
+          //checkError("pre-specular send");
+          //glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
+          //checkError("pre-diffuse send");
+          glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
+          //checkError("pre-shine send");
+          //glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
+          //checkError("pre-element buffer bind");
+          //std::cout<<(light.spec*materials[materialIndices[j]].spec)[0]<<','<<(light.spec*materials[materialIndices[j]].spec)[1]<<','<<(light.spec*materials[materialIndices[j]].spec)[2]<<std::endl;
+        } else {
+          std::cout<<"Error with material Ranges."<<std::endl;
+        }
         //set vertices
         //if you don't have these, soemthing is seriously wrong
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffers[j]);
@@ -349,8 +352,8 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
 
         //check for normals
         if (normals.size()>0 && loc_normal!=-1) {
-            std::cout<<"using Normals "<<loc_normal<<' '<<normalBuffers[j]<<std::endl;
-            std::cout<<"how many? "<<normals.size()<<' '<<normals[j].size()<<std::endl;
+            //std::cout<<"using Normals "<<loc_normal<<' '<<normalBuffers[j]<<std::endl;
+            //std::cout<<"how many? "<<normals.size()<<' '<<normals[j].size()<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
             glVertexAttribPointer(loc_normal,  // location of attribute
                               3,  // number of elements
@@ -397,10 +400,10 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }*/
 
         //draw elements
-        std::cout<<"binding buffers "<<j<<' '<<elementBuffers.size()<<' '<<elementBuffers[j]<<std::endl;
+        //std::cout<<"binding buffers "<<j<<' '<<elementBuffers.size()<<' '<<elementBuffers[j]<<std::endl;
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffers[j]);
         checkError("pre-element draw");
-        std::cout<<"drawing elements "<<name<<std::endl;
+        //std::cout<<"drawing elements "<<name<<std::endl;
         glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_INT, (void*)0);
         checkError("Post element draw");
     }

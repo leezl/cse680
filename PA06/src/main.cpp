@@ -163,7 +163,7 @@ void render() {
     glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));
 
-    //glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos));
+    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos));
 
     //enable attributes
     glEnableVertexAttribArray(loc_position);
@@ -357,21 +357,19 @@ bool initialize() {
             return false;
         }
 
-        /*lightin.loc_LightPos = glGetUniformLocation(program,
+        lightin.loc_LightPos = glGetUniformLocation(program,
                         const_cast<const char*>("LightPosition"));
         if ( lightin.loc_LightPos == -1 ) {
             std::cerr << "[F] LightPosition NOT FOUND" << std::endl;
             return false;
-        }*/
-        lightin.loc_LightPos = -1;
+        }
 
-        /*lightin.loc_DiffProd = glGetUniformLocation(program,
+        lightin.loc_DiffProd = glGetUniformLocation(program,
                         const_cast<const char*>("DiffuseProduct"));
         if ( lightin.loc_DiffProd == -1 ) {
             std::cerr << "[F] DiffueProduct NOT FOUND" << std::endl;
             return false;
-        }*/
-        lightin.loc_DiffProd=-1;
+        }
 
         /*lightin.loc_SpecProd = glGetUniformLocation(program,
                         const_cast<const char*>("SpecularProduct"));
@@ -381,13 +379,12 @@ bool initialize() {
         }*/
         lightin.loc_SpecProd=-1;
 
-        /*lightin.loc_AmbProd = glGetUniformLocation(program,
+        lightin.loc_AmbProd = glGetUniformLocation(program,
                         const_cast<const char*>("AmbientProduct"));
         if ( lightin.loc_AmbProd == -1 ) {
             std::cerr << "[F] AmbientProduct NOT FOUND" << std::endl;
             return false;
-        }*/
-        lightin.loc_AmbProd=-1;
+        }
 
         /*lightin.loc_Shin = glGetUniformLocation(program,
                         const_cast<const char*>("Shininess"));
