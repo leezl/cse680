@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
     std::cout<<"Loading "<<filename<<std::endl;
     whatIsIt = new Object(path+"/", filename);
     sun = new Object("assets/models/", "assets/models/sun.obj");
+    sun->flipNormals();
 
     // Initialize glut
     glutInit(&argc, argv);

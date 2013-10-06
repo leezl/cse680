@@ -72,7 +72,7 @@ class Object {
     void initializeObject();
     void cleanUp();
     void drawObject(GLint position, GLint normal, GLint uv, GLint color, Light light, LightLoc lightin);
-    void drawNormals();
+    void flipNormals();
     float center[3];
     float max[3];
     float min[3];

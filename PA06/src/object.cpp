@@ -215,6 +215,8 @@ bool Object::loadAssImp(std::string path){
             //shine
             float shiny = 20.0;
             aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shiny);
+            //if file was obj: shiniess 0-1000, in opengl 0-128 assume obj for now:
+            shiny = (shiny*128.0)/1000.0;
             //why is shininess being returned as color4d, when assimp
             //docs claim it should be a float...?
             temp.shine = shiny;
@@ -324,17 +326,10 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         if (materialIndices.size()>j && materials.size()>materialIndices[j]) {
           //Light calculations as necessary
           //std::cout<<"before materials "<<std::endl;
-          //checkError("after all buffers bound");
-          //checkError("pre-ambient Send");
           glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
-          //checkError("pre-specular send");
           glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
-          //checkError("pre-diffuse send");
           glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
-          //checkError("pre-shine send");
           glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
-          //checkError("pre-element buffer bind");
-          //std::cout<<(light.spec*materials[materialIndices[j]].spec)[0]<<','<<(light.spec*materials[materialIndices[j]].spec)[1]<<','<<(light.spec*materials[materialIndices[j]].spec)[2]<<std::endl;
         } else {
           std::cout<<"Error with material Ranges."<<std::endl;
         }
@@ -409,8 +404,10 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
     }
 }
 
-void Object::drawNormals(){
-    for (unsigned int j = 0; j<indices.size(); j++) {
-
+void Object::flipNormals(){
+    for (unsigned int j = 0; j<normals.size(); j++) {
+        for (unsigned int i =0; i<normals[j].size(); i++) {
+            normals[j][i] = -normals[j][i];
+        }
     }
 }
