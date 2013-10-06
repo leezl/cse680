@@ -88,13 +88,15 @@ bool Object::loadAssImp(std::string path){
     for (unsigned int j = 0; j<scene->mNumMeshes; j++) {
         const aiMesh* mesh = scene->mMeshes[j];
         //find center, min and max for camera positioning
-        std::vector<glm::vec4> localVert;
+        std::vector<glm::vec3> localVert;
+        std::vector<glm::vec3> localNorm;
         std::vector<glm::vec3> localUV;
+        std::vector<glm::vec4> localColor;
         aiVector3D pos;
         localVert.reserve(mesh->mNumVertices);
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
             pos = mesh->mVertices[i];
-            localVert.push_back(glm::vec4(pos.x, pos.y, pos.z, 1.0));
+            localVert.push_back(glm::vec3(pos.x, pos.y, pos.z));
             //std::cout<<"Vertices:  "<<pos.x<<','<<pos.y<<','<<pos.z<<std::endl;
             if (pos.x>max[0]) {
                 max[0] = pos.x;
@@ -119,26 +121,26 @@ bool Object::loadAssImp(std::string path){
         localVert.clear();
 
         //grab normals
-        localVert.reserve(mesh->mNumVertices);//make sure still reserved
+        localNorm.reserve(mesh->mNumVertices);//make sure still reserved
         if (mesh->HasNormals()) {
             for(unsigned int i=0; i<mesh->mNumVertices; i++) {
                 pos = mesh->mNormals[i];
-                localVert.push_back(glm::vec4(pos.x, pos.y, pos.z, 0.0));
+                localNorm.push_back(glm::vec3(pos.x, pos.y, pos.z));
                 //std::cout<<"Normals:  "<<pos.x<<','<<pos.y<<','<<pos.z<<std::endl;
             }
-            normals.push_back(localVert);
-            localVert.clear();
+            normals.push_back(localNorm);
+            localNorm.clear();
         }
 
         //grab colors
-        localVert.reserve(mesh->mNumVertices);//make sure still reserved
+        localColor.reserve(mesh->mNumVertices);//make sure still reserved
         if ( 0 < mesh->GetNumColorChannels()) {
             for(unsigned int i=0; i<mesh->mNumVertices; i++) {
                 aiColor4D color = mesh->mColors[0][i];
-                localVert.push_back(glm::vec4(color.r, color.g, color.b, color.a));
+                localColor.push_back(glm::vec4(color.r, color.g, color.b, color.a));
             }
-            colors.push_back(localVert);
-            localVert.clear();
+            colors.push_back(localColor);
+            localColor.clear();
         }
 
         //grab uvs
@@ -184,7 +186,7 @@ bool Object::loadAssImp(std::string path){
         for (unsigned int i = 0; i<scene->mNumMaterials; i++) {
             //store material properties: specular, diffuse, ambient, shine OR Default
             //check diffuse exists
-            //std::cout<<"Has materials "<<std::endl;
+            std::cout<<"Has materials "<<std::endl;
             aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
             aiMaterial *mtl = scene->mMaterials[i];
             //using c interface instead of c++ here, because c++ wasn't working...not sure why
@@ -227,7 +229,7 @@ bool Object::loadAssImp(std::string path){
 }
 
 void Object::initializeObject(){
-    //std::cout<<"Initializing Object "<<name<<std::endl;
+    std::cout<<"Initializing Object "<<name<<std::endl;
     //gen buffers
     //have to draw each material group of faces separately: lighting
     //can we avoid all this duplication?
@@ -240,13 +242,12 @@ void Object::initializeObject(){
     GLuint spare;
     for (unsigned int j = 0; j<indices.size(); j++) {
         if ( indices.size()>j ) {
-            //std::cout<<"Setting Element Buffer"<<std::endl;
+            std::cout<<"Setting Element Buffer "<<std::endl;
             //set element buffer data
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spare);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices[j].size() * sizeof(unsigned int), &indices[j][0], GL_STATIC_DRAW);
             elementBuffers.push_back(spare); 
-
             checkError("setting element data");
         } else {
             elementBuffers.push_back(0);
@@ -255,10 +256,11 @@ void Object::initializeObject(){
         //set vertices
         if (vertices.size()>j) {
             glEnableClientState(GL_VERTEX_ARRAY);
-            //std::cout<<"Setting Vertex Buffer"<<std::endl;
+            std::cout<<"Setting Vertex Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
-            glBufferData(GL_ARRAY_BUFFER, vertices[j].size() * sizeof(glm::vec4), &vertices[j][0], GL_STATIC_DRAW);
+            //std::cout<<"number of vertices "<<vertices[j].size()<<std::endl;
+            glBufferData(GL_ARRAY_BUFFER, vertices[j].size() * sizeof(glm::vec3), &vertices[j][0], GL_STATIC_DRAW);
             geometryBuffers.push_back(spare);
             checkError("setting vertex data");
         } else {
@@ -266,23 +268,24 @@ void Object::initializeObject(){
         }
         //check for normals
         if (normals.size()>j) {
-            //std::cout<<"Setting Normals Buffer "<<std::endl;
+            std::cout<<"Setting Normals Buffer "<<std::endl;
             glGenBuffers(1, &spare);
-            std::cout<<"normal buffer"<<spare<<std::endl;
+            std::cout<<"normal buffer "<<spare<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, spare);
-            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec4), &normals[j][0], GL_STATIC_DRAW);
+            //std::cout<<"number of normals "<<normals[j].size()<<std::endl;
+            glBufferData(GL_ARRAY_BUFFER, normals[j].size() * sizeof(glm::vec3), &normals[j][0], GL_STATIC_DRAW);
             normalBuffers.push_back(spare);
         } else {
             normalBuffers.push_back(0);
         }
 
         //check for uvs
-        if (uvs.size()>j) {
-            //std::cout<<"Setting UVs Buffer"<<std::endl;
+        /*if (uvs.size()>j) {
+            std::cout<<"Setting UVs Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //not prepared to handle several textures.
-            glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec3), &uvs[j][0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, uvs[j].size() * sizeof(glm::vec3), &uvs[j][0], GL_STATIC_DRAW);
             textureBuffers.push_back(spare);
         } else {
             textureBuffers.push_back(0);
@@ -290,11 +293,11 @@ void Object::initializeObject(){
 
         //check colors
         if ( colors.size()>j) {
-            //std::cout<<"Setting Colors Buffer"<<std::endl;
+            std::cout<<"Setting Colors Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //not prepared to handle several colors either...
-            glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec4), &colors[j][0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, colors[j].size() * sizeof(glm::vec4), &colors[j][0], GL_STATIC_DRAW);
             colorBuffers.push_back(spare);
             checkError("setting color buffer");
         } else if (materials.size()>0) {
@@ -303,7 +306,7 @@ void Object::initializeObject(){
         } else {
             //glDisableClientState{GL_COLOR_ARRAY};
             colorBuffers.push_back(0);
-        }
+        }*/
         //std::cout<<elementBuffers.size()<<','<<indices.size()<<','<<geometryBuffers.size()<<','<<normalBuffers.size()<<std::endl;
         //error checker (GLU)
         checkError("After Initializing a mesh");
@@ -319,7 +322,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
     //iterate through all meshes (per material lighting and shading)
     for (unsigned int j = 0; j<indices.size(); j++) {
         //Light calculations as necessary
-        //std::cout<<"before materials "<<std::endl;
+        /*std::cout<<"before materials "<<std::endl;
         checkError("after all buffers bound");
         //std::cout<<"Light "<<light.lightPos[0]<<' '<<light.lightPos[1]<<' '<<light.lightPos[2]<<std::endl;
         checkError("pre-ambient Send");
@@ -330,14 +333,14 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
         checkError("pre-shine send");
         glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
-        checkError("pre-element buffer bind");
+        checkError("pre-element buffer bind");*/
         //std::cout<<(light.spec*materials[materialIndices[j]].spec)[0]<<','<<(light.spec*materials[materialIndices[j]].spec)[1]<<','<<(light.spec*materials[materialIndices[j]].spec)[2]<<std::endl;
         //set vertices
         //if you don't have these, soemthing is seriously wrong
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffers[j]);
         // set pointers into the vbo for each of the attributes(position and color)
         glVertexAttribPointer(loc_position,  // location of attribute
-                              4,  // number of elements
+                              3,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
                               0,//sizeof(glm::vec3),  // stride
@@ -346,10 +349,11 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
 
         //check for normals
         if (normals.size()>0 && loc_normal!=-1) {
-            //std::cout<<"using Normals "<<loc_normal<<std::endl;
+            std::cout<<"using Normals "<<loc_normal<<' '<<normalBuffers[j]<<std::endl;
+            std::cout<<"how many? "<<normals.size()<<' '<<normals[j].size()<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
             glVertexAttribPointer(loc_normal,  // location of attribute
-                              4,  // number of elements
+                              3,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
                               0,//sizeof(glm::vec3),  // stride
@@ -360,8 +364,8 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }
 
         //check for uvs
-        if (uvs.size()>0 && loc_uv!=-1) {
-            //std::cout<<"using Uvs"<<std::endl;
+        /*if (uvs.size()>0 && loc_uv!=-1) {
+            std::cout<<"using Uvs"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, textureBuffers[j]);
             glVertexAttribPointer(loc_uv,  // location of attribute
                               3,  // number of elements
@@ -376,7 +380,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
 
         //check colors
         if (colors.size()>0 && loc_color!=-1) {
-            //std::cout<<"using colors"<<std::endl;
+            std::cout<<"using colors"<<std::endl;
             glEnableVertexAttribArray(loc_color);
             glBindBuffer(GL_ARRAY_BUFFER, colorBuffers[j]);
             glVertexAttribPointer(loc_color,
@@ -390,11 +394,13 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
             //std::cout<<"clearing for colors"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glDisableVertexAttribArray(loc_color);
-        }
+        }*/
 
         //draw elements
+        std::cout<<"binding buffers "<<j<<' '<<elementBuffers.size()<<' '<<elementBuffers[j]<<std::endl;
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffers[j]);
         checkError("pre-element draw");
+        std::cout<<"drawing elements "<<name<<std::endl;
         glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_INT, (void*)0);
         checkError("Post element draw");
     }

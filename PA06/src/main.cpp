@@ -128,7 +128,6 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-
     // Set all of the callbacks to GLUT that we need
     glutDisplayFunc(render);  // Called when its time to display
     glutReshapeFunc(reshape);  // Called if the window is resized
@@ -164,31 +163,28 @@ void render() {
     glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos));
+    //glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos));
 
     //enable attributes
     glEnableVertexAttribArray(loc_position);
     if (noShading) {
-      glEnableVertexAttribArray(loc_color);  
-    } else{
-        //std::cout<<"enabling normal "<<std::endl;
-      glEnableVertexAttribArray(loc_normal);
+      //glEnableVertexAttribArray(loc_color);  
     }
 
+    glEnableVertexAttribArray(loc_normal);
+
     //draw object
-    whatIsIt->drawObject(loc_position, loc_normal, -1, loc_color, light, lightin);
+    whatIsIt->drawObject(loc_position, loc_normal, -1, -1, light, lightin);
 
     glUniformMatrix4fv(loc_mmat, 1, GL_FALSE, glm::value_ptr(sunModel));
-    sun->drawObject(loc_position, loc_normal, -1, loc_color, light, lightin);
+    sun->drawObject(loc_position, loc_normal, -1, -1, light, lightin);
 
     // clean up
     glDisableVertexAttribArray(loc_position);
+    glDisableVertexAttribArray(loc_normal);
     if (noShading) {
-      glDisableVertexAttribArray(loc_color);
-    } else {
-        //std::cout<<"disabling normals "<<std::endl;
-      glDisableVertexAttribArray(loc_normal);
-    }
+      //glDisableVertexAttribArray(loc_color);
+    } 
 
     glUseProgram(0);
 
@@ -346,14 +342,14 @@ bool initialize() {
     }
 
     if (noShading) {
-        loc_color = glGetAttribLocation(program,
+        /*loc_color = glGetAttribLocation(program,
                         const_cast<const char*>("v_color"));
         if ( loc_color == -1 ) {
             std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
             return false;
-        }
+        }*/
+        loc_color=-1;
     } else {
-        std::cout<<"getting a normal glint "<<std::endl;
         loc_normal = glGetAttribLocation(program,
                         const_cast<const char*>("v_normal"));
         if ( loc_normal == -1 ) {
@@ -361,40 +357,45 @@ bool initialize() {
             return false;
         }
 
-        lightin.loc_LightPos = glGetUniformLocation(program,
+        /*lightin.loc_LightPos = glGetUniformLocation(program,
                         const_cast<const char*>("LightPosition"));
         if ( lightin.loc_LightPos == -1 ) {
             std::cerr << "[F] LightPosition NOT FOUND" << std::endl;
             return false;
-        }
+        }*/
+        lightin.loc_LightPos = -1;
 
-        lightin.loc_DiffProd = glGetUniformLocation(program,
+        /*lightin.loc_DiffProd = glGetUniformLocation(program,
                         const_cast<const char*>("DiffuseProduct"));
         if ( lightin.loc_DiffProd == -1 ) {
             std::cerr << "[F] DiffueProduct NOT FOUND" << std::endl;
             return false;
-        }
+        }*/
+        lightin.loc_DiffProd=-1;
 
-        lightin.loc_SpecProd = glGetUniformLocation(program,
+        /*lightin.loc_SpecProd = glGetUniformLocation(program,
                         const_cast<const char*>("SpecularProduct"));
         if ( lightin.loc_SpecProd == -1 ) {
             std::cerr << "[F] SpecularProduct NOT FOUND" << std::endl;
             return false;
-        }
+        }*/
+        lightin.loc_SpecProd=-1;
 
-        lightin.loc_AmbProd = glGetUniformLocation(program,
+        /*lightin.loc_AmbProd = glGetUniformLocation(program,
                         const_cast<const char*>("AmbientProduct"));
         if ( lightin.loc_AmbProd == -1 ) {
             std::cerr << "[F] AmbientProduct NOT FOUND" << std::endl;
             return false;
-        }
+        }*/
+        lightin.loc_AmbProd=-1;
 
-        lightin.loc_Shin = glGetUniformLocation(program,
+        /*lightin.loc_Shin = glGetUniformLocation(program,
                         const_cast<const char*>("Shininess"));
         if ( lightin.loc_Shin == -1 ) {
             std::cerr << "[F] Shininess NOT FOUND" << std::endl;
             return false;
-        }
+        }*/
+        lightin.loc_Shin=-1;
 
         loc_mmat = glGetUniformLocation(program,
                         const_cast<const char*>("M"));
