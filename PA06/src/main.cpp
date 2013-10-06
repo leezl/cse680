@@ -371,13 +371,12 @@ bool initialize() {
             return false;
         }
 
-        /*lightin.loc_SpecProd = glGetUniformLocation(program,
+        lightin.loc_SpecProd = glGetUniformLocation(program,
                         const_cast<const char*>("SpecularProduct"));
         if ( lightin.loc_SpecProd == -1 ) {
             std::cerr << "[F] SpecularProduct NOT FOUND" << std::endl;
             return false;
-        }*/
-        lightin.loc_SpecProd=-1;
+        }
 
         lightin.loc_AmbProd = glGetUniformLocation(program,
                         const_cast<const char*>("AmbientProduct"));
@@ -386,13 +385,12 @@ bool initialize() {
             return false;
         }
 
-        /*lightin.loc_Shin = glGetUniformLocation(program,
+        lightin.loc_Shin = glGetUniformLocation(program,
                         const_cast<const char*>("Shininess"));
         if ( lightin.loc_Shin == -1 ) {
             std::cerr << "[F] Shininess NOT FOUND" << std::endl;
             return false;
-        }*/
-        lightin.loc_Shin=-1;
+        }
 
         loc_mmat = glGetUniformLocation(program,
                         const_cast<const char*>("M"));

@@ -7,9 +7,9 @@ uniform mat4 V;
 uniform mat4 P;
 uniform vec4 LightPosition;
 uniform vec4 DiffuseProduct;
-//uniform vec4 SpecularProduct;
+uniform vec4 SpecularProduct;
 uniform vec4 AmbientProduct;
-//uniform float Shininess;
+uniform float Shininess;
 
 void main(void){
     vec4 diffuse, specular, ambient;
@@ -27,8 +27,8 @@ void main(void){
 
     diffuse = max(dot(L, N), 0.0) * DiffuseProduct;
     //diffuse = max(dot(L, N), 0.0);
-    specular = max( dot(N, H), 0.0 );
-    //specular = max(pow( max( dot(N, H), 0.0 ), Shininess ) * SpecularProduct, 0.0);
+    //specular = max( max( dot(N, H), 0.0 ) * SpecularProduct, 0.0 ) ;
+    specular = max(pow( max( dot(N, H), 0.0 ), Shininess ) * SpecularProduct, 0.0);
     //ambient = vec4(0.2,0.2,0.2,1.0);
     ambient = AmbientProduct;
     vec4 what = vec4((ambient + diffuse + specular).xyz, 1.0);

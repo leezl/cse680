@@ -213,7 +213,7 @@ bool Object::loadAssImp(std::string path){
             temp.amb[3] = diff.a;
             //std::cout<<"Ambient: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             //shine
-            float shiny = 20;
+            float shiny = 20.0;
             aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shiny);
             //why is shininess being returned as color4d, when assimp
             //docs claim it should be a float...?
@@ -328,11 +328,11 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
           //checkError("pre-ambient Send");
           glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
           //checkError("pre-specular send");
-          //glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
+          glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
           //checkError("pre-diffuse send");
           glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
           //checkError("pre-shine send");
-          //glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
+          glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
           //checkError("pre-element buffer bind");
           //std::cout<<(light.spec*materials[materialIndices[j]].spec)[0]<<','<<(light.spec*materials[materialIndices[j]].spec)[1]<<','<<(light.spec*materials[materialIndices[j]].spec)[2]<<std::endl;
         } else {
