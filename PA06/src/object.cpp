@@ -146,6 +146,7 @@ bool Object::loadAssImp(std::string path){
         //grab uvs
         localUV.reserve(mesh->mNumVertices);
         if (0 < mesh->GetNumUVChannels()) {
+            hasTextures = true;
             for(unsigned int i=0; i<mesh->mNumVertices; i++) {
                 pos = mesh->mTextureCoords[0][i];
                 localUV.push_back(glm::vec3(pos.x, pos.y, pos.z));
@@ -181,6 +182,7 @@ bool Object::loadAssImp(std::string path){
     }
     //load materials
     if (scene->HasMaterials()) {
+        hasMaterials = true;
         Material temp;
         //iterate through materials
         for (unsigned int i = 0; i<scene->mNumMaterials; i++) {
@@ -347,6 +349,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
 
         //check for normals
         if (normals.size()>0 && loc_normal!=-1) {
+            glEnableVertexAttribArray(loc_normal);
             //std::cout<<"using Normals "<<loc_normal<<' '<<normalBuffers[j]<<std::endl;
             //std::cout<<"how many? "<<normals.size()<<' '<<normals[j].size()<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
@@ -358,6 +361,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
                               (void*)0);  // offset
         } else {
             //std::cout<<"clearing for normals"<<std::endl;
+            glDisableVertexAttribArray(loc_normal); //needs to match to enable
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
@@ -401,6 +405,11 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         //std::cout<<"drawing elements "<<name<<std::endl;
         glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_INT, (void*)0);
         checkError("Post element draw");
+
+        //stops 
+        if (normals.size()>0 && loc_normal!=-1) {
+            glDisableVertexAttribArray(loc_normal); //needs to match to enable
+        }
     }
 }
 

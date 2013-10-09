@@ -1,0 +1,7 @@
+so...
+
+objects need:
+
+* Reference to their shader program
+* To know which attributes to activate
+* 

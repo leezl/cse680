@@ -31,12 +31,12 @@ struct Vertex {
 // --Evil Global variables
 // Just for this example!
 int w = 640, h = 480;  // Window size
-GLuint program;  // The GLSL program handle
+GLuint program, programShading, programTextures;  // The GLSL program handle
+//std::vector<Object* > objects;
 Object *whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
 Object *sun;
-GLuint vbo_geometry;
 float rotationSpeed = 120.0;
-bool rotateFlag=false, noShading=false;
+bool rotateFlag=false;
 float scaler = 1.0;
 float dist = -12.0;
 float height = 6.0;
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
     // Name and create the Window
-    glutCreateWindow("Project 02");
+    glutCreateWindow("Project 06");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -157,37 +157,28 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // enable the shader program
-    glUseProgram(program);
+    glUseProgram(program); //can vary across objects
 
     // upload the matrix to the shader
-    glUniformMatrix4fv(loc_mmat, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(loc_mmat, 1, GL_FALSE, glm::value_ptr(model));//varys across objects
+    glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));//same, usually
+    glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));//same, usually
 
-    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos));
+    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos)); //same usually
 
     //enable attributes
-    glEnableVertexAttribArray(loc_position);
-    if (noShading) {
-      //glEnableVertexAttribArray(loc_color);  
-    }
-
-    glEnableVertexAttribArray(loc_normal);
+    glEnableVertexAttribArray(loc_position); //same (had better be)
 
     //draw object
-    whatIsIt->drawObject(loc_position, loc_normal, -1, -1, light, lightin);
+    whatIsIt->drawObject(loc_position, loc_normal, -1, -1, light, lightin); //object
 
     glUniformMatrix4fv(loc_mmat, 1, GL_FALSE, glm::value_ptr(sunModel));
-    sun->drawObject(loc_position, loc_normal, -1, -1, light, lightin);
+    sun->drawObject(loc_position, loc_normal, -1, -1, light, lightin); //object
 
     // clean up
-    glDisableVertexAttribArray(loc_position);
-    glDisableVertexAttribArray(loc_normal);
-    if (noShading) {
-      //glDisableVertexAttribArray(loc_color);
-    } 
+    glDisableVertexAttribArray(loc_position); //needs to match to enable
 
-    glUseProgram(0);
+    glUseProgram(0); // always at end...not between each...
 
     // swap the buffers
     glutSwapBuffers();
