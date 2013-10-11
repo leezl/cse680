@@ -50,10 +50,12 @@ struct LightLoc {
 
 class Object {
   private:
+    GLuint program;//the program that works
     std::vector<GLuint> elementBuffers, geometryBuffers, normalBuffers, colorBuffers, textureBuffers;
     //aiScene * scene;
     //following are vectors of meshes: separate mesh per material
     std::string name;
+    //glm::mat4 model;//this objects model
     std::vector< Material > materials;
     std::vector< std::vector<unsigned int> > indices; //by mesh; flattens faces out
     std::vector< std::vector< glm::vec3 > > vertices;
@@ -67,6 +69,7 @@ class Object {
     bool loadAssImp(std::string path);
     
   public:
+    bool hasMaterials, hasTextures;//determine which shader to use
     Object(std::string path, std::string filename);
     ~Object();
     void initializeObject();
