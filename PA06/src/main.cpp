@@ -292,14 +292,11 @@ bool initialize() {
     Shader *vertex_shader, *fragment_shader;
 
     // --Geometry done
-    if (noShading) {
-        vertex_shader = new Shader(GL_VERTEX_SHADER);
-        fragment_shader = new Shader(GL_FRAGMENT_SHADER);
-    } else {
-        vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/BPVertShader.vs");
-        fragment_shader = new Shader(GL_FRAGMENT_SHADER);
-    }
-
+    //vertex_shader = new Shader(GL_VERTEX_SHADER);
+    //fragment_shader = new Shader(GL_FRAGMENT_SHADER);
+    vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/BPVertShader.vs");
+    fragment_shader = new Shader(GL_FRAGMENT_SHADER);
+    
     GLint shader_status;
 
     // Now we link the 2 shader objects into a program
@@ -333,77 +330,74 @@ bool initialize() {
         return false;
     }
 
-    if (noShading) {
-        /*loc_color = glGetAttribLocation(program,
+    /*loc_color = glGetAttribLocation(program,
                         const_cast<const char*>("v_color"));
-        if ( loc_color == -1 ) {
-            std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
-            return false;
-        }*/
-        loc_color=-1;
-    } else {
-        loc_normal = glGetAttribLocation(program,
-                        const_cast<const char*>("v_normal"));
-        if ( loc_normal == -1 ) {
-            std::cerr << "[F] V_NORMAL NOT FOUND" << std::endl;
-            return false;
-        }
+    if ( loc_color == -1 ) {
+        std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
+        return false;
+    }*/
+    loc_color=-1;
+    loc_normal = glGetAttribLocation(program,
+                    const_cast<const char*>("v_normal"));
+    if ( loc_normal == -1 ) {
+        std::cerr << "[F] V_NORMAL NOT FOUND" << std::endl;
+        return false;
+    }
 
-        lightin.loc_LightPos = glGetUniformLocation(program,
-                        const_cast<const char*>("LightPosition"));
-        if ( lightin.loc_LightPos == -1 ) {
-            std::cerr << "[F] LightPosition NOT FOUND" << std::endl;
-            return false;
-        }
+    lightin.loc_LightPos = glGetUniformLocation(program,
+                    const_cast<const char*>("LightPosition"));
+    if ( lightin.loc_LightPos == -1 ) {
+        std::cerr << "[F] LightPosition NOT FOUND" << std::endl;
+        return false;
+    }
 
-        lightin.loc_DiffProd = glGetUniformLocation(program,
-                        const_cast<const char*>("DiffuseProduct"));
-        if ( lightin.loc_DiffProd == -1 ) {
-            std::cerr << "[F] DiffueProduct NOT FOUND" << std::endl;
-            return false;
-        }
+    lightin.loc_DiffProd = glGetUniformLocation(program,
+                    const_cast<const char*>("DiffuseProduct"));
+    if ( lightin.loc_DiffProd == -1 ) {
+        std::cerr << "[F] DiffueProduct NOT FOUND" << std::endl;
+        return false;
+    }
 
-        lightin.loc_SpecProd = glGetUniformLocation(program,
-                        const_cast<const char*>("SpecularProduct"));
-        if ( lightin.loc_SpecProd == -1 ) {
-            std::cerr << "[F] SpecularProduct NOT FOUND" << std::endl;
-            return false;
-        }
+    lightin.loc_SpecProd = glGetUniformLocation(program,
+                    const_cast<const char*>("SpecularProduct"));
+    if ( lightin.loc_SpecProd == -1 ) {
+        std::cerr << "[F] SpecularProduct NOT FOUND" << std::endl;
+        return false;
+    }
 
-        lightin.loc_AmbProd = glGetUniformLocation(program,
-                        const_cast<const char*>("AmbientProduct"));
-        if ( lightin.loc_AmbProd == -1 ) {
-            std::cerr << "[F] AmbientProduct NOT FOUND" << std::endl;
-            return false;
-        }
+    lightin.loc_AmbProd = glGetUniformLocation(program,
+                    const_cast<const char*>("AmbientProduct"));
+    if ( lightin.loc_AmbProd == -1 ) {
+        std::cerr << "[F] AmbientProduct NOT FOUND" << std::endl;
+        return false;
+    }
 
-        lightin.loc_Shin = glGetUniformLocation(program,
-                        const_cast<const char*>("Shininess"));
-        if ( lightin.loc_Shin == -1 ) {
-            std::cerr << "[F] Shininess NOT FOUND" << std::endl;
-            return false;
-        }
+    lightin.loc_Shin = glGetUniformLocation(program,
+                    const_cast<const char*>("Shininess"));
+    if ( lightin.loc_Shin == -1 ) {
+        std::cerr << "[F] Shininess NOT FOUND" << std::endl;
+        return false;
+    }
 
-        loc_mmat = glGetUniformLocation(program,
-                        const_cast<const char*>("M"));
-        if ( loc_mmat == -1 ) {
-            std::cerr << "[F] MMATRIX NOT FOUND" << std::endl;
-            return false;
-        }
+    loc_mmat = glGetUniformLocation(program,
+                    const_cast<const char*>("M"));
+    if ( loc_mmat == -1 ) {
+        std::cerr << "[F] MMATRIX NOT FOUND" << std::endl;
+        return false;
+    }
 
-        loc_vmat = glGetUniformLocation(program,
-                        const_cast<const char*>("V"));
-        if ( loc_vmat == -1 ) {
-            std::cerr << "[F] VMATRIX NOT FOUND" << std::endl;
-            return false;
-        }
+    loc_vmat = glGetUniformLocation(program,
+                    const_cast<const char*>("V"));
+    if ( loc_vmat == -1 ) {
+        std::cerr << "[F] VMATRIX NOT FOUND" << std::endl;
+        return false;
+    }
 
-        loc_pmat = glGetUniformLocation(program,
-                        const_cast<const char*>("P"));
-        if ( loc_pmat == -1 ) {
-            std::cerr << "[F] PMATRIX NOT FOUND" << std::endl;
-            return false;
-        }
+    loc_pmat = glGetUniformLocation(program,
+                    const_cast<const char*>("P"));
+    if ( loc_pmat == -1 ) {
+        std::cerr << "[F] PMATRIX NOT FOUND" << std::endl;
+        return false;
     }
 
     // --Init the view and projection matrices
