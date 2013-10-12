@@ -1,5 +1,5 @@
 /*
-Project 04, Graphics
+Project 07, Graphics
 Edited: Liesl Wigand
 Copyright 2013 Liesl Wigand
 
@@ -20,6 +20,7 @@ Copyright 2013 Liesl Wigand
 
 #include "shader.h"
 #include "object.h"
+#include "texture.h"
 
 // --Data types
 // This object will define the attributes of a vertex(position, color, etc...)
@@ -114,6 +115,7 @@ int main(int argc, char **argv) {
     sun->flipNormals();
 
     // Initialize glut
+    ilInit();//initialize devil
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
