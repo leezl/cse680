@@ -33,7 +33,12 @@ Texture::Texture(std::string filename) {
     ilDeleteImages(1, &texid);
 }
 
-Texture::checkErrors() {
+void Texture::bindTexture() {
+	//is this all we need to do before drawing?
+	glBindTexture(GL_TEXTURE_2D, image); /* Binding of texture name */
+}
+
+void Texture::checkErrors() {
     ILenum Error;
 	while ((Error = ilGetError()) != IL_NO_ERROR) { 
 	    printf("%d: %s/n", Error, iluErrorString()); 

@@ -8,6 +8,7 @@ This is intended to house texture stuff. may be large or small depending on libr
 class Texture{
 public:
 	Texture(std::string filename);
+	bindTexture();
 	checkErrors();
 	~Texture();
 
