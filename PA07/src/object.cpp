@@ -7,6 +7,8 @@ Liesl Wigand
 #include "object.h"
 
 Object::Object(std::string path, std::string filename){
+    hasTextures=false;
+    hasMaterials=false;
     std::cout<<"Creating Object "<<path+filename<<std::endl;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
@@ -40,6 +42,13 @@ void Object::cleanUp(){
     for (unsigned int i=0; i<textureBuffers.size(); i++) {
         glDeleteBuffers(1, &textureBuffers[i]);
     }
+}
+
+void Object::setProgram(Program * program) {
+    myProgram = program;
+    /*std::cout<<"object program ";
+    std::cout<<myProgram;
+    std::cout<<"\n";*/
 }
 
 void Object::checkError(std::string where=" "){
@@ -167,7 +176,6 @@ bool Object::loadAssImp(std::string path){
             //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
             meshIndices.reserve(3*mesh->mNumFaces);//all traingulated
             for (unsigned int i=0; i<mesh->mNumFaces; i++) {//per face
-                int offset = meshIndices.size();
                 // The model should be all triangle since we triangulated
                 //std::cout<<"number of indices in face: "<<mesh->mFaces[i].mNumIndices<<std::endl;
                 meshIndices.push_back(mesh->mFaces[i].mIndices[0]);
@@ -191,6 +199,12 @@ bool Object::loadAssImp(std::string path){
             //std::cout<<"Has materials "<<std::endl;
             aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
             aiMaterial *mtl = scene->mMaterials[i];
+            /*for (int i = 0; i<mtl->mNumProperties; i++) {
+                std::cout<<"Property: "<<mtl->mProperties[i]->mKey.C_Str()<<std::endl;
+            }*/
+            float opacity;
+            aiGetMaterialFloat(mtl, AI_MATKEY_OPACITY, &opacity);
+            diff.a = opacity;
             //using c interface instead of c++ here, because c++ wasn't working...not sure why
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diff);
             temp.diff[0] = diff.r;
@@ -199,7 +213,6 @@ bool Object::loadAssImp(std::string path){
             temp.diff[3] = diff.a;
             //std::cout<<"Diffuse: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             diff.r = diff.g = diff.b = 0.2;//default specular
-            diff.a = 1.0;
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &diff);
             temp.spec[0] = diff.r;
             temp.spec[1] = diff.g;
@@ -207,7 +220,6 @@ bool Object::loadAssImp(std::string path){
             temp.spec[3] = diff.a;
             //std::cout<<"Specular: "<<diff.r<<','<<diff.g<<','<<diff.b<<','<<diff.a<<std::endl;
             diff.r = diff.g = diff.b = 0.1;//default ambient
-            diff.a = 1.0;
             aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &diff);
             temp.amb[0] = diff.r;
             temp.amb[1] = diff.g;
@@ -317,21 +329,30 @@ void Object::initializeObject(){
     }
 }
 
-void Object::drawObject(GLint loc_position, GLint loc_normal, 
-        GLint loc_uv, GLint loc_color, 
-        Light light, LightLoc lightin){
+void Object::drawObject(){//may recieve view, projection, light if needed
     //bind buffers
     //std::cout<<"Drawing Object "<<name<<std::endl;
     //std::cout<<elementBuffers.size()<<','<<indices.size()<<','<<geometryBuffers.size()<<','<<normalBuffers.size()<<std::endl;
+    myProgram->startProgram();
+    // upload the matrix to the shader
+    myProgram->setModel(&model);
+    //only do following if they haven't been set in init
+    myProgram->setView(NULL);
+    myProgram->setProjection(NULL);
+    myProgram->setLightPosition(NULL, NULL);
+    if (myProgram->view==NULL || myProgram->projection==NULL || myProgram->light==NULL) {
+        std::cerr<<"No view, projection or light set for program."<<std::endl;
+    }
+
     //iterate through all meshes (per material lighting and shading)
     for (unsigned int j = 0; j<indices.size(); j++) {
         if (materialIndices.size()>j && materials.size()>materialIndices[j]) {
           //Light calculations as necessary
           //std::cout<<"before materials "<<std::endl;
-          glUniform4fv(lightin.loc_AmbProd, 1, glm::value_ptr(light.amb*materials[materialIndices[j]].amb));
-          glUniform4fv(lightin.loc_SpecProd, 1, glm::value_ptr(light.spec*materials[materialIndices[j]].spec));
-          glUniform4fv(lightin.loc_DiffProd, 1, glm::value_ptr(light.diff*materials[materialIndices[j]].diff));
-          glUniform1f(lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
+          glUniform4fv(myProgram->lightin.loc_AmbProd, 1, glm::value_ptr(myProgram->light->amb*materials[materialIndices[j]].amb));
+          glUniform4fv(myProgram->lightin.loc_SpecProd, 1, glm::value_ptr(myProgram->light->spec*materials[materialIndices[j]].spec));
+          glUniform4fv(myProgram->lightin.loc_DiffProd, 1, glm::value_ptr(myProgram->light->diff*materials[materialIndices[j]].diff));
+          glUniform1f(myProgram->lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
         } else {
           std::cout<<"Error with material Ranges."<<std::endl;
         }
@@ -339,7 +360,7 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         //if you don't have these, soemthing is seriously wrong
         glBindBuffer(GL_ARRAY_BUFFER, geometryBuffers[j]);
         // set pointers into the vbo for each of the attributes(position and color)
-        glVertexAttribPointer(loc_position,  // location of attribute
+        glVertexAttribPointer(myProgram->loc_position,  // location of attribute
                               3,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
@@ -348,28 +369,27 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         checkError("after geometry buffer bound");
 
         //check for normals
-        if (normals.size()>0 && loc_normal!=-1) {
-            glEnableVertexAttribArray(loc_normal);
+        if (normals.size()>0) {
             //std::cout<<"using Normals "<<loc_normal<<' '<<normalBuffers[j]<<std::endl;
             //std::cout<<"how many? "<<normals.size()<<' '<<normals[j].size()<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffers[j]);
-            glVertexAttribPointer(loc_normal,  // location of attribute
+            glVertexAttribPointer(myProgram->loc_normal,  // location of attribute
                               3,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
                               0,//sizeof(glm::vec3),  // stride
                               (void*)0);  // offset
+            checkError("after normal buffer bound");
         } else {
             //std::cout<<"clearing for normals"<<std::endl;
-            glDisableVertexAttribArray(loc_normal); //needs to match to enable
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
         //check for uvs
-        /*if (uvs.size()>0 && loc_uv!=-1) {
+        /*if (uvs.size()>0) {
             std::cout<<"using Uvs"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, textureBuffers[j]);
-            glVertexAttribPointer(loc_uv,  // location of attribute
+            glVertexAttribPointer(myProgram->loc_uv,  // location of attribute
                               3,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
@@ -381,11 +401,10 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         }
 
         //check colors
-        if (colors.size()>0 && loc_color!=-1) {
+        if (colors.size()>0) {
             std::cout<<"using colors"<<std::endl;
-            glEnableVertexAttribArray(loc_color);
             glBindBuffer(GL_ARRAY_BUFFER, colorBuffers[j]);
-            glVertexAttribPointer(loc_color,
+            glVertexAttribPointer(myProgram->loc_color,
                               4,
                               GL_FLOAT,
                               GL_FALSE,
@@ -395,7 +414,6 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         } else {
             //std::cout<<"clearing for colors"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glDisableVertexAttribArray(loc_color);
         }*/
 
         //draw elements
@@ -405,12 +423,9 @@ void Object::drawObject(GLint loc_position, GLint loc_normal,
         //std::cout<<"drawing elements "<<name<<std::endl;
         glDrawElements(GL_TRIANGLES, indices[j].size(),  GL_UNSIGNED_INT, (void*)0);
         checkError("Post element draw");
-
-        //stops 
-        if (normals.size()>0 && loc_normal!=-1) {
-            glDisableVertexAttribArray(loc_normal); //needs to match to enable
-        }
     }
+
+    myProgram->stopProgram();
 }
 
 void Object::flipNormals(){

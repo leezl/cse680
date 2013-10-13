@@ -1,6 +1,7 @@
 /*
 This is intended to house texture stuff. may be large or small depending on library used.
 */
+#include "texture.h"
 
 Texture::Texture(std::string filename) {
     ilGenImages(1, &texid); /* Generation of one image name */
@@ -41,7 +42,7 @@ void Texture::bindTexture() {
 void Texture::checkErrors() {
     ILenum Error;
 	while ((Error = ilGetError()) != IL_NO_ERROR) { 
-	    printf("%d: %s/n", Error, iluErrorString()); 
+	    printf("%d: %s/n", Error, iluErrorString(Error)); 
 	} 
 }
 

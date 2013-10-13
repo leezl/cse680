@@ -21,6 +21,9 @@ Delete other load Funcitons when done picking one
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "program.h"
+#include "texture.h"
+
 #ifndef OBJECT_H_
 #define OBJECT_H_
 
@@ -29,13 +32,6 @@ Need: separate draw for each material: different lighting, so: need to keep face
 Keep in Assimp aiScene: store the aiScene, and iterate through it in the draw function.
 */
 
-struct Light {
-    glm::vec4 pos;
-    glm::vec4 amb;
-    glm::vec4 diff;
-    glm::vec4 spec;
-};
-
 struct Material {
     float shine;
     glm::vec4 amb;
@@ -43,19 +39,13 @@ struct Material {
     glm::vec4 spec;
 };
 
-struct LightLoc {
-    GLint loc_AmbProd, loc_LightPos, loc_Shin, loc_DiffProd, loc_SpecProd;
-};
-
-
 class Object {
   private:
-    GLuint program;//the program that works
     std::vector<GLuint> elementBuffers, geometryBuffers, normalBuffers, colorBuffers, textureBuffers;
     //aiScene * scene;
     //following are vectors of meshes: separate mesh per material
+    Program * myProgram;//the program that works for this object
     std::string name;
-    //glm::mat4 model;//this objects model
     std::vector< Material > materials;
     std::vector< std::vector<unsigned int> > indices; //by mesh; flattens faces out
     std::vector< std::vector< glm::vec3 > > vertices;
@@ -69,13 +59,15 @@ class Object {
     bool loadAssImp(std::string path);
     
   public:
+    glm::mat4 model;//this objects model
     bool hasMaterials, hasTextures;//determine which shader to use
     Object(std::string path, std::string filename);
     ~Object();
     void initializeObject();
     void cleanUp();
-    void drawObject(GLint position, GLint normal, GLint uv, GLint color, Light light, LightLoc lightin);
+    void drawObject();
     void flipNormals();
+    void setProgram(Program * program);
     float center[3];
     float max[3];
     float min[3];

@@ -1,4 +1,5 @@
 attribute vec3 v_position;
+attribute vec3 v_color;
 
 varying vec4 color;
 
@@ -8,5 +9,5 @@ uniform mat4 P;
 
 void main(void){
     gl_Position = P * V * M * vec4(v_position, 1.0);
-    color = vec4(0.2, 0.2, 0.2, 1.0);
+    color = vec4(v_color.rgb, 1.0);
 }

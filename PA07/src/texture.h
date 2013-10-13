@@ -3,13 +3,18 @@ This is intended to house texture stuff. may be large or small depending on libr
 */
 #include <iostream>
 #include <string>
+
+#include <GL/glew.h>  // glew must be included before the main gl libs
+#include <GL/glut.h>  // doing otherwise causes compiler shouting
+
 #include <il.h>
+#include <ilu.h>
 
 class Texture{
 public:
 	Texture(std::string filename);
-	bindTexture();
-	checkErrors();
+	void bindTexture();
+	void checkErrors();
 	~Texture();
 
 private:

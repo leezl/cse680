@@ -25,7 +25,13 @@ find_package(OpenGL REQUIRED)
 find_package(DevIL REQUIRED)
 
 #only object needs Assimp
-set(CORELIBS ${GLUT_LIBRARY} ${GLEW_LIBRARY} ${OPENGL_LIBRARY} ${ASSIMP_LIBRARIES} ${IL_LIBRARIES})
+set(CORELIBS 
+	${GLUT_LIBRARY} 
+	${GLEW_LIBRARY} 
+	${OPENGL_LIBRARY} 
+	${ASSIMP_LIBRARIES} 
+	${IL_LIBRARIES} 
+	${ILU_LIBRARIES})
 
 #set flags
 set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")
@@ -34,7 +40,12 @@ set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")
 #include_directories(${LibXML++_INCLUDE_DIRS})
 #set(LIBS ${LIBS} ${LibXML++_LIBRARIES})
 
-set(SOURCES ${PA_SOURCE_DIR}/src/main.cpp ${PA_SOURCE_DIR}/src/shader.cpp ${PA_SOURCE_DIR}/src/object.cpp)
+set(SOURCES 
+	${PA_SOURCE_DIR}/src/main.cpp 
+	${PA_SOURCE_DIR}/src/shader.cpp 
+	${PA_SOURCE_DIR}/src/object.cpp
+	${PA_SOURCE_DIR}/src/program.cpp
+	${PA_SOURCE_DIR}/src/texture.cpp)
 
 add_executable(pa7 ${SOURCES})
 

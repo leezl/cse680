@@ -18,51 +18,33 @@ Copyright 2013 Liesl Wigand
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>  // Makes passing matrices to shaders easier
 
-#include "shader.h"
 #include "object.h"
-#include "texture.h"
 
-// --Data types
-// This object will define the attributes of a vertex(position, color, etc...)
-struct Vertex {
-    GLfloat position[3];
-    GLfloat color[3];
-};
+// --Data types (other files now)
 
 // --Evil Global variables
 // Just for this example!
 int w = 640, h = 480;  // Window size
-GLuint program, programShading, programTextures;  // The GLSL program handle
+//GLuint programShading, programTextures;  // The GLSL program handle
+Program * programShading=NULL;
+Program * programTextures=NULL;
 //std::vector<Object* > objects;
-Object *whatIsIt; //stores object. Yay. Gluint, Vertices, Indices, loader
-Object *sun;
+Object *whatIsIt=NULL; //stores object. Yay. Gluint, Vertices, Indices, loader
+Object *sun=NULL;
 float rotationSpeed = 120.0;
 bool rotateFlag=false;
 float scaler = 1.0;
 float dist = -12.0;
 float height = 6.0;
-
-// uniform locations
-//GLint loc_mvpmat;  // Location of the modelviewprojection matrix in the shader
-
-// attribute locations
-GLint loc_position;
-GLint loc_color;
-GLint loc_normal;
-GLint loc_uv;
-GLint loc_mmat;
-GLint loc_vmat;
-GLint loc_pmat;
+bool disableColor=true, disableTextures=true;
 
 // transform matrices
 //std::vector<Objects> objects;  // stores model matices by buffer index
 //move model matrix to object? well...
-glm::mat4 model, sunModel;  // obj->world each object should have its own model matrix 
 glm::mat4 view;  // world->eye
 glm::mat4 projection;  // eye->clip
-//glm::mat4 mvp;  // premultiplied modelviewprojection
 Light light;
-LightLoc lightin;
+glm::vec4 lightposition;
 
 // --GLUT Callbacks
 void render();
@@ -112,7 +94,7 @@ int main(int argc, char **argv) {
     std::cout<<"Loading "<<filename<<std::endl;
     whatIsIt = new Object(path+"/", filename);
     sun = new Object("assets/models/", "assets/models/sun.obj");
-    sun->flipNormals();
+    sun->flipNormals();//so it glows with the light inside
 
     // Initialize glut
     ilInit();//initialize devil
@@ -120,7 +102,7 @@ int main(int argc, char **argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
     // Name and create the Window
-    glutCreateWindow("Project 06");
+    glutCreateWindow("Project 07");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -158,29 +140,20 @@ void render() {
     glClearColor(0.0, 0.0, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // enable the shader program
-    glUseProgram(program); //can vary across objects
-
-    // upload the matrix to the shader
-    glUniformMatrix4fv(loc_mmat, 1, GL_FALSE, glm::value_ptr(model));//varys across objects
-    glUniformMatrix4fv(loc_vmat, 1, GL_FALSE, glm::value_ptr(view));//same, usually
-    glUniformMatrix4fv(loc_pmat, 1, GL_FALSE, glm::value_ptr(projection));//same, usually
-
-    glUniform4fv(lightin.loc_LightPos, 1, glm::value_ptr(view * light.pos)); //same usually
-
-    //enable attributes
-    glEnableVertexAttribArray(loc_position); //same (had better be)
+    //programShading->startProgram();
+    //programShading->setView(NULL);//&view);
+    //programShading->setProjection(NULL);//&projection);
+    //programShading->setLightPosition(NULL,NULL);//&light, &view);
+    //std::cout<<"Main view loc "<<&view<<std::endl;
+    //std::cout<<"Main projection loc "<<&projection<<std::endl;
+    //std::cout<<"Main light loc "<<&light<<std::endl;
 
     //draw object
-    whatIsIt->drawObject(loc_position, loc_normal, -1, -1, light, lightin); //object
+    whatIsIt->drawObject(); //object: handles program setup
 
-    glUniformMatrix4fv(loc_mmat, 1, GL_FALSE, glm::value_ptr(sunModel));
-    sun->drawObject(loc_position, loc_normal, -1, -1, light, lightin); //object
+    sun->drawObject(); //object
 
-    // clean up
-    glDisableVertexAttribArray(loc_position); //needs to match to enable
-
-    glUseProgram(0); // always at end...not between each...
+    //programShading->stopProgram();
 
     // swap the buffers
     glutSwapBuffers();
@@ -192,6 +165,10 @@ P01: added the rotation about the object's y-axis (after translate)
 P02: check a flag for rotation
  */
 void update() {
+    //update light position
+    light.pos = lightposition;
+    //std::cout<<"Light in main "<<light.pos.x<<','<<light.pos.y<<','<<light.pos.z<<std::endl;
+
     static float rotAngle = 0.0;
     float dt = getDT(); 
     if ( rotateFlag ) {
@@ -199,11 +176,11 @@ void update() {
     }
 
     //move object
-    model = glm::scale(glm::mat4(1.0f), glm::vec3(scaler, scaler, scaler));
-    model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    whatIsIt->model = glm::scale(glm::mat4(1.0f), glm::vec3(scaler, scaler, scaler));
+    whatIsIt->model = glm::rotate(whatIsIt->model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
 
     //move sun 
-    sunModel = glm::translate(glm::mat4(1.0f), glm::vec3(light.pos.x, light.pos.y, light.pos.z));
+    sun->model = glm::translate(glm::mat4(1.0f), glm::vec3(light.pos.x, light.pos.y, light.pos.z));
 
     //move view...
     glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
@@ -248,16 +225,16 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
        scaler +=0.1;
        break;
     case 'k'://1
-       light.pos.y -= 0.1;
+       lightposition.y -= 0.1;
        break;
     case 'i'://2
-       light.pos.y +=0.1;
+       lightposition.y +=0.1;
        break;
     case 'j'://1
-       light.pos.x -= 0.1;
+       lightposition.x -= 0.1;
        break;
     case 'l'://2
-       light.pos.x +=0.1;
+       lightposition.x +=0.1;
        break;
     default:
       break;
@@ -291,122 +268,32 @@ bool initialize() {
     whatIsIt->initializeObject();
     sun->initializeObject();
 
-    Shader *vertex_shader, *fragment_shader;
+    programShading = new Program(true, false, false);//normals, !color, !texture
+    programTextures = new Program(true, false, false);//true);//normals, !color, texture (no blending)
 
-    // --Geometry done
-    //vertex_shader = new Shader(GL_VERTEX_SHADER);
-    //fragment_shader = new Shader(GL_FRAGMENT_SHADER);
-    vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/BPVertShader.vs");
-    fragment_shader = new Shader(GL_FRAGMENT_SHADER);
-    
-    GLint shader_status;
-
-    // Now we link the 2 shader objects into a program
-    // This program is what is run on the GPU
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader->get());
-    glAttachShader(program, fragment_shader->get());
-    glLinkProgram(program);
-    //ehh
-    delete vertex_shader;
-    delete fragment_shader;
-
-    // check if everything linked ok
-    glGetProgramiv(program, GL_LINK_STATUS, &shader_status);
-    if ( !shader_status ) {
-        std::cerr << "[F] THE SHADER PROGRAM FAILED TO LINK" << std::endl;
-        GLint infoLogLength;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
-        GLchar* strInfoLog = new GLchar[infoLogLength + 1];
-        glGetProgramInfoLog(program, infoLogLength, NULL, strInfoLog);
-        fprintf(stderr, "Compilation error in program: %s\n", strInfoLog);
-        return false;
+    if (whatIsIt->hasTextures && !disableTextures) {
+        std::cout<<"using textures"<<std::endl;
+        whatIsIt->setProgram(programTextures);
+    } else {
+        whatIsIt->setProgram(programShading);
+        /*std::cout<<"object shader ";
+        std::cout<<programShading;
+        std::cout<<std::endl;*/
     }
-
-    // Now we set the locations of the attributes and uniforms
-    // this allows us to access them easily while rendering
-    loc_position = glGetAttribLocation(program,
-                    const_cast<const char*>("v_position"));
-    if ( loc_position == -1 ) {
-        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
-        return false;
-    }
-
-    /*loc_color = glGetAttribLocation(program,
-                        const_cast<const char*>("v_color"));
-    if ( loc_color == -1 ) {
-        std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
-        return false;
-    }*/
-    loc_color=-1;
-    loc_normal = glGetAttribLocation(program,
-                    const_cast<const char*>("v_normal"));
-    if ( loc_normal == -1 ) {
-        std::cerr << "[F] V_NORMAL NOT FOUND" << std::endl;
-        return false;
-    }
-
-    lightin.loc_LightPos = glGetUniformLocation(program,
-                    const_cast<const char*>("LightPosition"));
-    if ( lightin.loc_LightPos == -1 ) {
-        std::cerr << "[F] LightPosition NOT FOUND" << std::endl;
-        return false;
-    }
-
-    lightin.loc_DiffProd = glGetUniformLocation(program,
-                    const_cast<const char*>("DiffuseProduct"));
-    if ( lightin.loc_DiffProd == -1 ) {
-        std::cerr << "[F] DiffueProduct NOT FOUND" << std::endl;
-        return false;
-    }
-
-    lightin.loc_SpecProd = glGetUniformLocation(program,
-                    const_cast<const char*>("SpecularProduct"));
-    if ( lightin.loc_SpecProd == -1 ) {
-        std::cerr << "[F] SpecularProduct NOT FOUND" << std::endl;
-        return false;
-    }
-
-    lightin.loc_AmbProd = glGetUniformLocation(program,
-                    const_cast<const char*>("AmbientProduct"));
-    if ( lightin.loc_AmbProd == -1 ) {
-        std::cerr << "[F] AmbientProduct NOT FOUND" << std::endl;
-        return false;
-    }
-
-    lightin.loc_Shin = glGetUniformLocation(program,
-                    const_cast<const char*>("Shininess"));
-    if ( lightin.loc_Shin == -1 ) {
-        std::cerr << "[F] Shininess NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_mmat = glGetUniformLocation(program,
-                    const_cast<const char*>("M"));
-    if ( loc_mmat == -1 ) {
-        std::cerr << "[F] MMATRIX NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_vmat = glGetUniformLocation(program,
-                    const_cast<const char*>("V"));
-    if ( loc_vmat == -1 ) {
-        std::cerr << "[F] VMATRIX NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_pmat = glGetUniformLocation(program,
-                    const_cast<const char*>("P"));
-    if ( loc_pmat == -1 ) {
-        std::cerr << "[F] PMATRIX NOT FOUND" << std::endl;
-        return false;
+    if (sun->hasTextures && !disableTextures) {
+        std::cout<<"using textures for sun"<<std::endl;
+        sun->setProgram(programTextures);
+    } else {
+        sun->setProgram(programShading);
+        /*std::cout<<"sun shader ";
+        std::cout<<programShading;
+        std::cout<<std::endl;*/
     }
 
     // --Init the view and projection matrices
     //  if you will be having a moving camera
-    // the view matrix will need to more dynamic
+    // the view matrix will need to be more dynamic
     //  ...Like you should update it before you render more dynamic
-    //  for this project having them static will be fine
     //Look at center of object:
     glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
     glm::vec3 max = glm::vec3(whatIsIt->max[0], whatIsIt->max[1], whatIsIt->max[2]);
@@ -415,10 +302,12 @@ bool initialize() {
     height = max[1]+(0.5*(max[1]-min[1]));
     //ensure light outside of object
     //Add a default light; assume single light for now
+    lightposition = glm::vec4(0.0f+(0.5*(max[2]-min[2])), height+(0.5*(max[1]-min[1])), dist, 1.0f);
     light.pos = glm::vec4(0.0f+(0.5*(max[2]-min[2])), height+(0.5*(max[1]-min[1])), dist, 1.0f);
     light.amb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     light.diff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     light.spec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
+    std::cout<<"Light First: "<<light.pos[0]<<' '<<light.pos[1]<<' '<<light.pos[2]<<std::endl;
 
     //ensure camera outside of object
     view = glm::lookAt(glm::vec3(0.0, height, dist),  // Eye Position
@@ -429,6 +318,18 @@ bool initialize() {
                                   float(w)/float(h),  // Aspect Ratio, so Circles stay Circular
                                   0.01f,  // Distance to the near plane, normally a small value like this
                                   100.0f);  // Distance to the far plane,
+
+    //update lights in program here, since we move them...
+    programShading->addLight(light);
+    programTextures->addLight(light);
+    programShading->addView(view);
+    programTextures->addView(view);
+    programShading->addProjection(projection);
+    programTextures->addProjection(projection);
+    std::cout<<"FIRST Main view loc "<<&view<<std::endl;
+    std::cout<<"FIRST Main projection loc "<<&projection<<std::endl;
+    std::cout<<"FIRST Main light loc "<<&light<<std::endl;
+
 
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -442,7 +343,8 @@ bool initialize() {
 
 void cleanUp() {
     // Clean up, Clean up
-    glDeleteProgram(program);
+    delete programShading;
+    delete programTextures;
     //whatIsIt->cleanUp();
 }
 
