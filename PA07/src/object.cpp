@@ -384,12 +384,17 @@ void Object::drawObject(){//may recieve view, projection, light if needed
             glUniform4fv(myProgram->lightin.loc_SpecProd, 1, glm::value_ptr(myProgram->light->spec*currentMat.spec));
             glUniform4fv(myProgram->lightin.loc_DiffProd, 1, glm::value_ptr(myProgram->light->diff*currentMat.diff));
             glUniform1f(myProgram->lightin.loc_Shin, currentMat.shine);//ref
+            checkError("after lighting updated");
             if ( !materials[materialIndices[j]].textureFiles.empty() ) {
                 //just diffuse for now
                 if (currentMat.textureFiles[aiTextureType_DIFFUSE].size() > 0) {
                     Texture temp = currentMat.textureFiles[aiTextureType_DIFFUSE][0];
-                    myProgram->setTexture( &(temp.image) );
-                    temp.bindTexture();
+                    glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
+                    checkError("set active texture");
+                    myProgram->setTexture( NULL );//&(temp.image) );//binds the texture sampler location
+                    checkError("after image updated");
+                    temp.bindTexture();//binds the texture image location
+                    checkError("after texture updated");
                 }
             }
         } else {

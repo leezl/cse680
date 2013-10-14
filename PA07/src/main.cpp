@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
     std::cout<<"Loading "<<filename<<std::endl;
     ilInit();//initialize devil
     iluInit();//more
-    ilutRenderer(ILUT_OPENGL);
+    //ilutRenderer(ILUT_OPENGL);
     whatIsIt = new Object(path+"/", filename);
     sun = new Object("assets/models/", "assets/models/sun.obj");
     sun->flipNormals();//so it glows with the light inside

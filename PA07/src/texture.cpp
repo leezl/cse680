@@ -43,12 +43,12 @@ Texture::Texture(std::string filename) {
 	    glTexImage2D(GL_TEXTURE_2D, 0, ilGetInteger(IL_IMAGE_BPP), ilGetInteger(IL_IMAGE_WIDTH),
 	    	ilGetInteger(IL_IMAGE_HEIGHT), 0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE,
 	    	ilGetData()); /* Texture specification */
-	    std::cout<<"generated the texture"<<std::endl;
     } else {
 	    /* Error occured */
 	    std::cout<<"Failed to load texture image. "<<filename<<std::endl;
 	    exit(EXIT_FAILURE);
     }
+    ilDeleteImages(1, &texid);//?
 }
 
 void Texture::bindTexture() {
@@ -66,5 +66,4 @@ void Texture::checkErrors() {
 
 Texture::~Texture() {
 	glDeleteTextures(1, &image);
-	ilDeleteImages(1, &texid);
 }

@@ -175,7 +175,7 @@ bool Program::loadLocations() {
     loc_tex = glGetUniformLocation(program,
                     "texture");
     if ( loc_tex == -1 ) {
-        std::cerr<< "[f] texture NOT FOUND" << std::endl;
+        std::cerr<< "[F] texture NOT FOUND" << std::endl;
         if (needsTextures) return false;
     }
 
@@ -273,13 +273,15 @@ bool Program::setProjection(glm::mat4 * projectioner) {
 }
 
 bool Program::setTexture(GLuint * texI) {
-    glActiveTexture( GL_TEXTURE0 );
+
     if (texI != NULL) {
+        //std::cout<<"not null "<<*texI<<std::endl;
         glUniform1i(*texI, 0);
         return true;
     } else {
+        //std::cout<<"Other "<<loc_tex<<std::endl;
         //hope we never make it here
-        glUniform1i(0, 0);
+        glUniform1i(loc_tex, 0);
         return true;
     }
 }
