@@ -98,13 +98,6 @@ int main(int argc, char **argv) {
     glutInitWindowSize(w, h);
     // Name and create the Window
     glutCreateWindow("Project 07");
-    std::cout<<"Loading "<<filename<<std::endl;
-    ilInit();//initialize devil
-    iluInit();//more
-    //ilutRenderer(ILUT_OPENGL);
-    whatIsIt = new Object(path+"/", filename);
-    sun = new Object("assets/models/", "assets/models/sun.obj");
-    sun->flipNormals();//so it glows with the light inside
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -114,6 +107,15 @@ int main(int argc, char **argv) {
         std::cerr << glewGetErrorString(status) << std::endl;
         return -1;
     }
+
+    std::cout<<"Loading "<<filename<<std::endl;
+    ilInit();//initialize devil
+    iluInit();//more
+    //ilutRenderer(ILUT_OPENGL);
+    glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
+    whatIsIt = new Object(path+"/", filename);
+    sun = new Object("assets/models/", "assets/models/sun.obj");
+    sun->flipNormals();//so it glows with the light inside
 
     // Set all of the callbacks to GLUT that we need
     glutDisplayFunc(render);  // Called when its time to display

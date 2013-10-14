@@ -10,7 +10,7 @@ This is intended to house texture stuff. may be large or small depending on libr
 
 #include <il.h>
 #include <ilu.h>
-#include <ilut.h>
+//#include <ilut.h>
 
 class Texture{
 public:

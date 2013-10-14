@@ -20,6 +20,11 @@ void main(void){
     //positioning
     //vec3 pos = (V * M * vec4(v_position, 1.0)).xyz;
     gl_Position = P * V * M * vec4(v_position, 1.0);
+    /*if ( v_uv.x==0.0 && v_uv.y==0.0 ) {
+        gl_Position = P * V * M * vec4(2.0, v_position.y, v_position.z, 1.0);
+    } else {
+        gl_Position = P * V * M * vec4(v_position, 1.0);
+    }*/
     texCoord = v_uv.xy;//get rid of extra for now
 
     //shading

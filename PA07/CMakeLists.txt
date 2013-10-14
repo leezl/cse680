@@ -15,6 +15,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PA_SOURCE_DIR}/cmake/Modules/")
 set(PA_MODULE_PATH ${PA_MODULE_PATH} "${PA_SOURCE_DIR}/cmake/Modules/")
 
 include_directories(${IL_INCLUDE_DIR})
+message("waht " ${IL_INCLUDE_DIR})
 include_directories(${PA_SOURCE_DIR}/src)
 
 #find libraries
@@ -33,7 +34,7 @@ set(CORELIBS
 	${IL_LIBRARIES} 
 	${ILU_LIBRARIES}
 	#${ILUT_LIBRARIES}
-)
+	)
 
 #set flags
 set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")

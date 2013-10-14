@@ -29,7 +29,7 @@ The following is still true:
 Building This Example    
 ---------------------    
     
-*This example requires GLM, glew, glut and devil*    
+*This example requires GLM, glew, glut and devil. Also Assimp 3.0, sudo make installed from the src download.*    
 *On ubuntu it can be installed with this command*    
     
    >$ sudo apt-get install freeglut3-dev freeglut3 libglew1.6-dev    

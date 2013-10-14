@@ -159,6 +159,13 @@ bool Object::loadAssImp(std::string dir, std::string path){
             for(unsigned int i=0; i<mesh->mNumVertices; i++) {
                 pos = mesh->mTextureCoords[0][i];
                 //std::cout<<"texture coords "<<pos.x<<','<<pos.y<<','<<pos.z<<std::endl;
+                //folowing conversion should not be needed if wrapping textures...
+                if (pos.x <0.0) {
+                    pos.x = 1.0-pos.x;
+                }
+                if (pos.y<0.0) {
+                    pos.y = 1.0-pos.y;
+                }
                 localUV.push_back(glm::vec3(pos.x, pos.y, pos.z));
             }
             uvs.push_back(localUV);
@@ -385,17 +392,39 @@ void Object::drawObject(){//may recieve view, projection, light if needed
             glUniform4fv(myProgram->lightin.loc_DiffProd, 1, glm::value_ptr(myProgram->light->diff*currentMat.diff));
             glUniform1f(myProgram->lightin.loc_Shin, currentMat.shine);//ref
             checkError("after lighting updated");
-            if ( !materials[materialIndices[j]].textureFiles.empty() ) {
+            if ( !currentMat.textureFiles.empty() ) {
+                glActiveTexture( GL_TEXTURE0 );
+                glEnable(GL_TEXTURE_2D);
+                myProgram->setTexture(NULL);
+                float pixels[] = {
+                0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
+                };
+                GLuint image;
+                glGenTextures(1, &image); // Texture name generation 
+                //std::cout<<"image "<<image<<std::endl;
+                glBindTexture(GL_TEXTURE_2D, image); // Binding of texture name
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
+                //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
+                //  64, 64, 
+                //  0, GL_RGB, 
+                //  GL_UNSIGNED_BYTE, textImg); // Texture specification 
+                //should set these from file if given...default for now
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // We will use linear interpolation for magnification filter 
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 //just diffuse for now
-                if (currentMat.textureFiles[aiTextureType_DIFFUSE].size() > 0) {
-                    Texture temp = currentMat.textureFiles[aiTextureType_DIFFUSE][0];
-                    glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
+                /*if (currentMat.textureFiles[aiTextureType_DIFFUSE].size() > 0) {
+                    //std::cout<<"setting up textures "<<currentMat.textureFiles[aiTextureType_DIFFUSE].size()<<std::endl;
                     checkError("set active texture");
                     myProgram->setTexture( NULL );//&(temp.image) );//binds the texture sampler location
                     checkError("after image updated");
-                    temp.bindTexture();//binds the texture image location
+                    currentMat.textureFiles[aiTextureType_DIFFUSE][0].bindTexture();//binds the texture image location
                     checkError("after texture updated");
-                }
+                }*/
+            } else {
+                glBindTexture(GL_TEXTURE_2D,0);
             }
         } else {
           std::cout<<"Error with material Ranges."<<std::endl;

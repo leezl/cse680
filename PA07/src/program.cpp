@@ -55,6 +55,7 @@ bool Program::compileShaders() {
 	} else if (needsNormals && !needsColors && needsTextures) { // t,f,t
         std::cout<<"Creating shader using vertices, normals and textures only."<<std::endl;
 		//set default (vertices only, default colors)
+        std::cout<<"DEBUG SHADER"<<std::endl;
 		vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/texBPVertShader.vs");
     	fragment_shader = new Shader(GL_FRAGMENT_SHADER, "assets/shaders/texFragShader.fs");
 	} else if ( needsNormals &&  needsColors &&  !needsTextures) { // t,t,f //not implemented yet
@@ -279,7 +280,7 @@ bool Program::setTexture(GLuint * texI) {
         glUniform1i(*texI, 0);
         return true;
     } else {
-        //std::cout<<"Other "<<loc_tex<<std::endl;
+        //std::cout<<"program setting texture uniform sampler "<<loc_tex<<std::endl;
         //hope we never make it here
         glUniform1i(loc_tex, 0);
         return true;
@@ -353,6 +354,7 @@ bool Program::startProgram() {
     }
     if (loc_uv!=-1) {
     	glEnableVertexAttribArray(loc_uv);
+        glEnable(GL_TEXTURE_2D);
         //std::cout<<"enabling uv"<<std::endl;
     }
     //send attributes (handled elsewhere)
@@ -370,6 +372,7 @@ bool Program::stopProgram() {
     }
     if (loc_uv!=-1) {
     	glDisableVertexAttribArray(loc_uv);
+        glDisable(GL_TEXTURE_2D);
     }
 
     glUseProgram(0);
