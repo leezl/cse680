@@ -108,6 +108,10 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    const unsigned char * version ;
+    version = (const unsigned char *)glGetString(GL_VERSION);
+    printf ("OpenGL version is %s\n", version);
+
     std::cout<<"Loading "<<filename<<std::endl;
     ilInit();//initialize devil
     iluInit();//more

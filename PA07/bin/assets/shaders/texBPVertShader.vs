@@ -1,3 +1,5 @@
+//#version 330 ///I wish. versions are: 1.00 ES, 1.10, 1.20, and 1.30 on laptop. BAD laptop.
+
 attribute vec3 v_position;
 attribute vec3 v_normal;
 attribute vec3 v_uv;
