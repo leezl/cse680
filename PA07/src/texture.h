@@ -14,6 +14,7 @@ This is intended to house texture stuff. may be large or small depending on libr
 
 class Texture{
 public:
+	Texture();
 	Texture(std::string filename);
 	Texture(const Texture& other) {
 		image = other.image;
@@ -29,7 +30,8 @@ public:
 		if (image==rhs.image) return true;
 		return false;
 	}
-
+	//int textSize=64;
+	GLubyte textImg[64][64][3];
 	ILuint texid; /* ILuint is a 32bit unsigned integer.
 	Variable texid will be used to store image name. */
 	GLuint image;

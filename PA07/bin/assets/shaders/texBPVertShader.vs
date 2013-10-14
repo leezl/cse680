@@ -35,9 +35,7 @@ void main(void){
     specular = max(pow( max( dot(N, H), 0.0 ), Shininess ) * SpecularProduct, 0.0);
     //ambient = vec4(0.2,0.2,0.2,1.0);
     ambient = AmbientProduct;
-    if (ambient.x + ambient.y + ambient.z <0.2) {
-        ambient = vec4(0.05, 0.05, 0.05, 1.0);
-    }
+
     vec4 what = vec4((ambient + diffuse + specular).xyz, 1.0);
     color = what;
 }

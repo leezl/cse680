@@ -3,6 +3,33 @@ This is intended to house texture stuff. may be large or small depending on libr
 */
 #include "texture.h"
 
+Texture::Texture() {
+	//textSize = 1200;
+
+	for (int i=0; i<64; i++) {
+		for (int j=0; j<64; j++) {
+			GLubyte c = (((i & 0x8) ==0 ) ^ ((j & 0x8) == 0)) * 255;
+			textImg[i][j][0] = c;
+			textImg[i][j][1] = c;
+			textImg[i][j][2] = 0;
+		}
+	}
+
+	glGenTextures(1, &image); /* Texture name generation */
+	glBindTexture(GL_TEXTURE_2D, image); /* Binding of texture name */
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
+		64, 64, 
+		0, GL_RGB, 
+		GL_UNSIGNED_BYTE, textImg); /* Texture specification */
+	//should set these from file if given...default for now
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); /* We will use linear
+    interpolation for magnification filter */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); /* We will use linear
+    interpolation for minifying filter */
+}
+
 Texture::Texture(std::string filename) {
 	//ilInit();//initialize devil
     //iluInit();//more
@@ -40,9 +67,15 @@ Texture::Texture(std::string filename) {
 	    interpolation for magnification filter */
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); /* We will use linear
 	    interpolation for minifying filter */
-	    glTexImage2D(GL_TEXTURE_2D, 0, ilGetInteger(IL_IMAGE_BPP), ilGetInteger(IL_IMAGE_WIDTH),
-	    	ilGetInteger(IL_IMAGE_HEIGHT), 0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE,
-	    	ilGetData()); /* Texture specification */
+	    //std::cout<<"wtf enums "<<IL_IMAGE_BPP<<' '<<IL_IMAGE_WIDTH<<' '
+	    //	<<IL_IMAGE_HEIGHT<<' '<<IL_IMAGE_FORMAT<<std::endl;
+	    //std::cout<<"argh "<<ilGetInteger(IL_IMAGE_BPP)<<' '<<ilGetInteger(IL_IMAGE_WIDTH)<<
+	    //	' '<<ilGetInteger(IL_IMAGE_HEIGHT)<<' '<<ilGetInteger(IL_IMAGE_FORMAT)<<std::endl;
+	    glTexImage2D(GL_TEXTURE_2D, 0, ilGetInteger(IL_IMAGE_BPP), 
+	    	ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 
+	    	0, ilGetInteger(IL_IMAGE_FORMAT), 
+	    	GL_UNSIGNED_BYTE, ilGetData()); /* Texture specification */
+	    checkErrors();
     } else {
 	    /* Error occured */
 	    std::cout<<"Failed to load texture image. "<<filename<<std::endl;
@@ -53,6 +86,7 @@ Texture::Texture(std::string filename) {
 
 void Texture::bindTexture() {
 	//is this all we need to do before drawing?
+	//std::cout<<"bidning texture "<<image<<std::endl;
 	glBindTexture(GL_TEXTURE_2D, image); /* Binding of texture name */
 }
 

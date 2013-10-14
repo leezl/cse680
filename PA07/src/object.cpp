@@ -227,7 +227,7 @@ bool Object::loadAssImp(std::string dir, std::string path){
                         temp.textureFiles[ texTypes[texs] ] = ok;
                     }
                     std::string whatIsHappening = texFile.C_Str();
-                    Texture omgEvilTexture(dir+whatIsHappening);
+                    Texture omgEvilTexture;//dir+whatIsHappening);
                     (temp.textureFiles[ texTypes[texs] ]).push_back( omgEvilTexture );
                 }
             }
@@ -436,7 +436,7 @@ void Object::drawObject(){//may recieve view, projection, light if needed
                               3,  // number of elements
                               GL_FLOAT,  // type
                               GL_FALSE,  // normalized?
-                              0,//sizeof(glm::vec2),  // stride
+                              0,//sizeof(glm::vec3),  // stride
                               (void*)0);  // offset
         } else {
             //std::cout<<"clearing for uvs"<<std::endl;
