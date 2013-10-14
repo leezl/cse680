@@ -39,6 +39,7 @@ Building This Example
 To build this example just     
     
    >$ cd build    
-   >$ make    
+   >$cmake ..    
+   >$ make     
     
 The excutable will be put in /bin.

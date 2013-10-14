@@ -118,6 +118,7 @@ int main(int argc, char **argv) {
     //ilutRenderer(ILUT_OPENGL);
     glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
     whatIsIt = new Object(path+"/", filename);
+    //whatIsIt->flipNormals();
     sun = new Object("assets/models/", "assets/models/sun.obj");
     sun->flipNormals();//so it glows with the light inside
 
@@ -148,20 +149,9 @@ void render() {
     glClearColor(0.0, 0.0, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //programShading->startProgram();
-    //programShading->setView(NULL);//&view);
-    //programShading->setProjection(NULL);//&projection);
-    //programShading->setLightPosition(NULL,NULL);//&light, &view);
-    //std::cout<<"Main view loc "<<&view<<std::endl;
-    //std::cout<<"Main projection loc "<<&projection<<std::endl;
-    //std::cout<<"Main light loc "<<&light<<std::endl;
-
     //draw object
     whatIsIt->drawObject(); //object: handles program setup
-
     sun->drawObject(); //object
-
-    //programShading->stopProgram();
 
     // swap the buffers
     glutSwapBuffers();
@@ -334,10 +324,6 @@ bool initialize() {
     programTextures->addView(view);
     programShading->addProjection(projection);
     programTextures->addProjection(projection);
-    //std::cout<<"FIRST Main view loc "<<&view<<std::endl;
-    //std::cout<<"FIRST Main projection loc "<<&projection<<std::endl;
-    //std::cout<<"FIRST Main light loc "<<&light<<std::endl;
-
 
     // enable depth testing
     glEnable(GL_DEPTH_TEST);

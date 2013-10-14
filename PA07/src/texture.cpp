@@ -14,15 +14,20 @@ Texture::Texture() {
 			textImg[i][j][2] = 0;
 		}
 	}*/
+	glActiveTexture(GL_TEXTURE0);
 	float pixels[] = {
-    0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
+	    1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f,
+	    0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f
 	};
 
 	glGenTextures(1, &image); // Texture name generation 
 	//std::cout<<"image "<<image<<std::endl;
 	glBindTexture(GL_TEXTURE_2D, image); // Binding of texture name
-	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // We will use linear interpolation for magnification filter 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // We will use linear interpolation for minifying filter 
+    
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
  
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
@@ -30,14 +35,11 @@ Texture::Texture() {
 	//	0, GL_RGB, 
 	//	GL_UNSIGNED_BYTE, textImg); // Texture specification 
 	//should set these from file if given...default for now
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // We will use linear interpolation for magnification filter 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // We will use linear interpolation for minifying filter 
-    //image = ilutGLLoadImage("/assets/models/seams.jpg");
+//image = ilutGLLoadImage("/assets/models/seams.jpg");
 }
 
 Texture::Texture(std::string filename) {
+	//glActiveTexture(GL_TEXTURE0);//done before call, so set to correct texture
 	//ilInit();//initialize devil
     //iluInit();//more
     //ilutRenderer(ILUT_OPENGL);
@@ -105,6 +107,10 @@ void Texture::checkErrors() {
 	} 
 }
 
-Texture::~Texture() {
+void Texture::cleanUp() {
 	glDeleteTextures(1, &image);
+}
+
+Texture::~Texture() {
+	//glDeleteTextures(1, &image);
 }

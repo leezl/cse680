@@ -53,7 +53,7 @@ public:
     bool setModel(glm::mat4 * model=NULL);
 	bool setView(glm::mat4 * view=NULL);
 	bool setProjection(glm::mat4 * projection=NULL);
-    bool setTexture(GLuint * texI=NULL);
+    bool setTextureSampler(GLuint * texI=NULL);
 	bool setLightPosition(Light * lighter=NULL, glm::mat4 * viewer=NULL);
 	//start and stop: enables and useProgram
 	bool startProgram();
@@ -69,11 +69,11 @@ public:
 	Light * light;
 	glm::mat4 * view;
 	glm::mat4 * projection;
+    GLuint program;
 private:	
 	bool needsNormals;
 	bool needsColors;
 	bool needsTextures;
-	GLuint program;
 	//may not have all of the following
 	// attribute locations
 	GLint loc_mmat;

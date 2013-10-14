@@ -1,11 +1,11 @@
-//#version 330 ///I wish. versions are: 1.00 ES, 1.10, 1.20, and 1.30 on laptop. BAD laptop.
+#version 330 ///I wish. versions are: 1.00 ES, 1.10, 1.20, and 1.30 on laptop. BAD laptop.
 
-attribute vec3 v_position;
-attribute vec3 v_normal;
-attribute vec3 v_uv;
+in vec3 v_position;
+in vec3 v_normal;
+in vec3 v_uv;
 
-varying vec4 color;
-varying vec2 texCoord;
+out vec4 color;
+out vec2 texCoord;
 
 uniform mat4 M;
 uniform mat4 V;

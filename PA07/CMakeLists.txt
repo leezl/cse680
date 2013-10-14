@@ -14,16 +14,16 @@ SET(CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules")
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PA_SOURCE_DIR}/cmake/Modules/")
 set(PA_MODULE_PATH ${PA_MODULE_PATH} "${PA_SOURCE_DIR}/cmake/Modules/")
 
-include_directories(${IL_INCLUDE_DIR})
-message("waht " ${IL_INCLUDE_DIR})
-include_directories(${PA_SOURCE_DIR}/src)
-
 #find libraries
 find_package(Assimp REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(DevIL REQUIRED)
+
+include_directories(${IL_INCLUDE_DIR})
+message("IL directories " ${IL_INCLUDE_DIR})
+include_directories(${PA_SOURCE_DIR}/src)
 
 #only object needs Assimp
 set(CORELIBS 

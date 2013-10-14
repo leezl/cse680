@@ -174,9 +174,9 @@ bool Program::loadLocations() {
     }
     //texture image loc
     loc_tex = glGetUniformLocation(program,
-                    "texture");
+                    "textSamp");
     if ( loc_tex == -1 ) {
-        std::cerr<< "[F] texture NOT FOUND" << std::endl;
+        std::cerr<< "[F] textSamp NOT FOUND" << std::endl;
         if (needsTextures) return false;
     }
 
@@ -273,7 +273,7 @@ bool Program::setProjection(glm::mat4 * projectioner) {
 	}
 }
 
-bool Program::setTexture(GLuint * texI) {
+bool Program::setTextureSampler(GLuint * texI) {
 
     if (texI != NULL) {
         //std::cout<<"not null "<<*texI<<std::endl;

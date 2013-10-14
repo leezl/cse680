@@ -42,6 +42,13 @@ void Object::cleanUp(){
     for (unsigned int i=0; i<textureBuffers.size(); i++) {
         glDeleteBuffers(1, &textureBuffers[i]);
     }
+    for (unsigned int i=0; i<materials.size(); i++) {
+        for(std::map< aiTextureType, std::vector< Texture> >::iterator iter = materials[i].textureFiles.begin(); iter != materials[i].textureFiles.end(); ++iter) {
+            for(std::vector< Texture >::iterator iter2 = iter->second.begin(); iter2 != iter->second.end(); ++iter2) {
+                iter2->cleanUp();//good god I need to fix this deallocation
+            }
+        }
+    }
 }
 
 void Object::setProgram(Program * program) {
@@ -225,6 +232,8 @@ bool Object::loadAssImp(std::string dir, std::string path){
             for (unsigned int texs=0; texs<texTypes.size(); texs++) {
                 //std::cout<<"aiTextureType "<<texTypes[texs]<<std::endl;
                 for (unsigned int texSub = 0; texSub<(mtl->GetTextureCount(texTypes[texs])); texSub++) {
+                    //before creating texture
+                    glActiveTexture(GL_TEXTURE0 + texSub);
                     aiString texFile("");
                     aiGetMaterialString(mtl, AI_MATKEY_TEXTURE(texTypes[texs],texSub), &texFile);
                     //adding textures rather than file names here...
@@ -234,8 +243,10 @@ bool Object::loadAssImp(std::string dir, std::string path){
                         temp.textureFiles[ texTypes[texs] ] = ok;
                     }
                     std::string whatIsHappening = texFile.C_Str();
-                    Texture omgEvilTexture;//dir+whatIsHappening);
+                    Texture omgEvilTexture(dir+whatIsHappening); /////////
+                    //std::cout<<"adding texture "<<dir+whatIsHappening<<' '<<name<<std::endl;
                     (temp.textureFiles[ texTypes[texs] ]).push_back( omgEvilTexture );
+                    checkError("after texture creation");
                 }
             }
             //loadTextures(temp);
@@ -386,45 +397,27 @@ void Object::drawObject(){//may recieve view, projection, light if needed
         if (materialIndices.size()>j && materials.size()>materialIndices[j]) {
             Material currentMat = materials[materialIndices[j]];
             //Light calculations as necessary
-            //std::cout<<"before materials "<<std::endl;
+            //std::cout<<"before materials "<<name <<std::endl;
             glUniform4fv(myProgram->lightin.loc_AmbProd, 1, glm::value_ptr(myProgram->light->amb*currentMat.amb));
             glUniform4fv(myProgram->lightin.loc_SpecProd, 1, glm::value_ptr(myProgram->light->spec*currentMat.spec));
             glUniform4fv(myProgram->lightin.loc_DiffProd, 1, glm::value_ptr(myProgram->light->diff*currentMat.diff));
             glUniform1f(myProgram->lightin.loc_Shin, currentMat.shine);//ref
             checkError("after lighting updated");
             if ( !currentMat.textureFiles.empty() ) {
-                glActiveTexture( GL_TEXTURE0 );
-                glEnable(GL_TEXTURE_2D);
-                myProgram->setTexture(NULL);
-                float pixels[] = {
-                0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
-                };
-                GLuint image;
-                glGenTextures(1, &image); // Texture name generation 
-                //std::cout<<"image "<<image<<std::endl;
-                glBindTexture(GL_TEXTURE_2D, image); // Binding of texture name
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
-                //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
-                //  64, 64, 
-                //  0, GL_RGB, 
-                //  GL_UNSIGNED_BYTE, textImg); // Texture specification 
-                //should set these from file if given...default for now
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // We will use linear interpolation for magnification filter 
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                //add loop for this if mult textures later
+                glActiveTexture( GL_TEXTURE0 + 0);
+                checkError("set active texture");
+                myProgram->setTextureSampler( NULL );
                 //just diffuse for now
-                /*if (currentMat.textureFiles[aiTextureType_DIFFUSE].size() > 0) {
-                    //std::cout<<"setting up textures "<<currentMat.textureFiles[aiTextureType_DIFFUSE].size()<<std::endl;
-                    checkError("set active texture");
-                    myProgram->setTexture( NULL );//&(temp.image) );//binds the texture sampler location
+                if (currentMat.textureFiles[aiTextureType_DIFFUSE].size() > 0) {
+                    //std::cout<<"setting up textures "<<name<<' '<<currentMat.textureFiles[aiTextureType_DIFFUSE].size()<<std::endl;
                     checkError("after image updated");
                     currentMat.textureFiles[aiTextureType_DIFFUSE][0].bindTexture();//binds the texture image location
                     checkError("after texture updated");
-                }*/
+                }
             } else {
-                glBindTexture(GL_TEXTURE_2D,0);
+                //std::cout<<"NO TEXTURES "<<name<<std::endl;
+                //glBindTexture(GL_TEXTURE_2D,0);
             }
         } else {
           std::cout<<"Error with material Ranges."<<std::endl;

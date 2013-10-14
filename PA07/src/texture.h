@@ -21,6 +21,7 @@ public:
 	}
 	void bindTexture();
 	void checkErrors();
+	void cleanUp();
 	~Texture();
 	Texture & operator=(Texture other) {
 		image = other.image;
