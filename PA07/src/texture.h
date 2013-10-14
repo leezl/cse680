@@ -24,6 +24,7 @@ public:
 	void cleanUp();
 	~Texture();
 	Texture & operator=(Texture other) {
+		//this causes deallocation problems
 		image = other.image;
 		return *this;
 	}

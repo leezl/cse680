@@ -45,19 +45,18 @@ bool Program::compileShaders() {
     //shaders which needs only normals; no color, no texture, default light or given
 	if (needsNormals &&  !needsColors &&  !needsTextures) {// t,f,f
         std::cout<<"Creating shader using vertices and normals only."<<std::endl;
-    	vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/BPVertShader.vs");
+    	vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/s140VertShader.vs");
     	fragment_shader = new Shader(GL_FRAGMENT_SHADER);
 	} else if (!needsNormals && needsColors &&  !needsTextures) { // f,t,f //not implemented yet
         std::cout<<"Creating shader using vertices and colors only."<<std::endl;
 		//set default (vertices only, default colors)
-		vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/colorVertShader.vs");
+		vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/c140VertShader.vs");
     	fragment_shader = new Shader(GL_FRAGMENT_SHADER);
 	} else if (needsNormals && !needsColors && needsTextures) { // t,f,t
         std::cout<<"Creating shader using vertices, normals and textures only."<<std::endl;
 		//set default (vertices only, default colors)
-        std::cout<<"DEBUG SHADER"<<std::endl;
-		vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/texBPVertShader.vs");
-    	fragment_shader = new Shader(GL_FRAGMENT_SHADER, "assets/shaders/texFragShader.fs");
+		vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/ts140VertShader.vs");
+    	fragment_shader = new Shader(GL_FRAGMENT_SHADER, "assets/shaders/ts140FragShader.fs");
 	} else if ( needsNormals &&  needsColors &&  !needsTextures) { // t,t,f //not implemented yet
         std::cout<<"Creating shader using vertices, normals, and colors only."<<std::endl;
 		std::cerr<<"WARNING: chosen shader type not "

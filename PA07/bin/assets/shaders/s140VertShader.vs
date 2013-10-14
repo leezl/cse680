@@ -1,10 +1,12 @@
+/*
+Blinn-Phong Lighting Vertex SHader, version 1.40;
+Assumes color dealt with before hand (Light Products, not light vals)
+*/
+
 attribute vec3 v_position;
 attribute vec3 v_normal;
-attribute vec3 v_uv;
-attribute vec4 v_color;
 
 varying vec4 color;
-varying vec2 texCoord;
 
 uniform mat4 M;
 uniform mat4 V;
@@ -21,7 +23,6 @@ void main(void){
     //positioning
     //vec3 pos = (V * M * vec4(v_position, 1.0)).xyz;
     gl_Position = P * V * M * vec4(v_position, 1.0);
-    texCoord = v_uv.xy;//get rid of extra for now
 
     //shading
     //debug

@@ -16,11 +16,11 @@ Shader::Shader(GLenum shaderType) {
     // check type
     if ( shaderType == GL_VERTEX_SHADER ) {
         // store correct default
-        const char *shad = loadShader((char *)"assets/shaders/ptVertShader.vs");
+        const char *shad = loadShader((char *)"assets/shaders/140VertShader.vs");
         createShader(shaderType, shad);
     }
     else if ( shaderType == GL_FRAGMENT_SHADER ) {
-        const char *shad = loadShader((char *)"assets/shaders/ptFragShader.fs");
+        const char *shad = loadShader((char *)"assets/shaders/140FragShader.fs");
         createShader(shaderType, shad);
     }
     else {

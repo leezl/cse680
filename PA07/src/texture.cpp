@@ -4,16 +4,7 @@ This is intended to house texture stuff. may be large or small depending on libr
 #include "texture.h"
 
 Texture::Texture() {
-	//textSize = 1200;
-	/*std::cout<<"hmmm texture init "<<std::endl;
-	for (int i=0; i<64; i++) {
-		for (int j=0; j<64; j++) {
-			GLubyte c = (((i & 0x8) ==0 ) ^ ((j & 0x8) == 0)) * 255;
-			textImg[i][j][0] = c;
-			textImg[i][j][1] = c;
-			textImg[i][j][2] = 0;
-		}
-	}*/
+	//Default checkerboard pattern texture
 	glActiveTexture(GL_TEXTURE0);
 	float pixels[] = {
 	    1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f,
@@ -29,13 +20,6 @@ Texture::Texture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // We will use linear interpolation for minifying filter 
     
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
- 
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
-	//	64, 64, 
-	//	0, GL_RGB, 
-	//	GL_UNSIGNED_BYTE, textImg); // Texture specification 
-	//should set these from file if given...default for now
-//image = ilutGLLoadImage("/assets/models/seams.jpg");
 }
 
 Texture::Texture(std::string filename) {
@@ -112,5 +96,7 @@ void Texture::cleanUp() {
 }
 
 Texture::~Texture() {
+	//either I need to change the copy, or avoid ever copying, or leave this out...
+	//probably chould avoid copying, use pointers to textures...maybe I might fix that later...
 	//glDeleteTextures(1, &image);
 }

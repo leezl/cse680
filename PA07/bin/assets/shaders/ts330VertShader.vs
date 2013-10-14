@@ -1,3 +1,7 @@
+/*
+Texturing and Shading fragment shader. version 3.30 for practice and comparison.
+*/
+
 #version 330 ///I wish. versions are: 1.00 ES, 1.10, 1.20, and 1.30 on laptop. BAD laptop.
 
 in vec3 v_position;

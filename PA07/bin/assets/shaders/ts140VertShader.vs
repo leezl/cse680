@@ -1,6 +1,15 @@
+/*
+Texturing and Shading vertex shader. version 1.40.
+*/
+
+//#version 330 ///I wish. versions are: 1.00 ES, 1.10, 1.20, and 1.30 on laptop. BAD laptop.
+
 attribute vec3 v_position;
 attribute vec3 v_normal;
+attribute vec3 v_uv;
+
 varying vec4 color;
+varying vec2 texCoord;
 
 uniform mat4 M;
 uniform mat4 V;
@@ -17,6 +26,12 @@ void main(void){
     //positioning
     //vec3 pos = (V * M * vec4(v_position, 1.0)).xyz;
     gl_Position = P * V * M * vec4(v_position, 1.0);
+    /*if ( v_uv.x==0.0 && v_uv.y==0.0 ) {
+        gl_Position = P * V * M * vec4(2.0, v_position.y, v_position.z, 1.0);
+    } else {
+        gl_Position = P * V * M * vec4(v_position, 1.0);
+    }*/
+    texCoord = v_uv.xy;//get rid of extra for now
 
     //shading
     //debug
@@ -31,9 +46,7 @@ void main(void){
     specular = max(pow( max( dot(N, H), 0.0 ), Shininess ) * SpecularProduct, 0.0);
     //ambient = vec4(0.2,0.2,0.2,1.0);
     ambient = AmbientProduct;
-    if (ambient.x + ambient.y + ambient.z <0.2) {
-        ambient = vec4(0.05, 0.05, 0.05, 1.0);
-    }
+
     vec4 what = vec4((ambient + diffuse + specular).xyz, 1.0);
     color = what;
 }
