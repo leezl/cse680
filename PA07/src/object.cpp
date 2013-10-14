@@ -15,7 +15,7 @@ Object::Object(std::string path, std::string filename){
     center[0]=center[1]=center[2] = 0;
     name = filename;
     //loading object
-    if ( !loadAssImp(filename) ) {
+    if ( !loadAssImp(path, filename) ) {
         printf("Error Loading Object File with Assimp.\n");
         exit(-1);
     }
@@ -69,7 +69,7 @@ void Object::checkError(std::string where=" "){
 /*
 Function for loading using Assimp. WIP
 */
-bool Object::loadAssImp(std::string path){
+bool Object::loadAssImp(std::string dir, std::string path){
     std::cout<<"Loading Object "<<path<<std::endl;
     //need assimp importer
     Assimp::Importer importer;
@@ -158,6 +158,7 @@ bool Object::loadAssImp(std::string path){
             hasTextures = true;
             for(unsigned int i=0; i<mesh->mNumVertices; i++) {
                 pos = mesh->mTextureCoords[0][i];
+                //std::cout<<"texture coords "<<pos.x<<','<<pos.y<<','<<pos.z<<std::endl;
                 localUV.push_back(glm::vec3(pos.x, pos.y, pos.z));
             }
             uvs.push_back(localUV);
@@ -199,10 +200,40 @@ bool Object::loadAssImp(std::string path){
             //std::cout<<"Has materials "<<std::endl;
             aiColor4D diff(0.8f, 0.8f, 0.8f, 1.0f);//default diffuse
             aiMaterial *mtl = scene->mMaterials[i];
-            /*for (int i = 0; i<mtl->mNumProperties; i++) {
+            /*for (unsigned int i = 0; i<mtl->mNumProperties; i++) {
                 std::cout<<"Property: "<<mtl->mProperties[i]->mKey.C_Str()<<std::endl;
-            }*/
-            float opacity;
+            }
+            std::cout<<std::endl;*/
+            //shading model : not being used
+            int shadingMode=0;
+            aiGetMaterialInteger(mtl, AI_MATKEY_SHADING_MODEL, &shadingMode);
+            temp.shadingMode = shadingMode;
+            //refraction: not useful
+            float refraction=1.0;
+            aiGetMaterialFloat(mtl, AI_MATKEY_SHADING_MODEL, &refraction);
+            temp.refraction = refraction;
+            // texture filename
+            //not keeping track of all of them yet...probably just using diffuse right now
+            std::vector< aiTextureType > texTypes { aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_AMBIENT };
+            for (unsigned int texs=0; texs<texTypes.size(); texs++) {
+                //std::cout<<"aiTextureType "<<texTypes[texs]<<std::endl;
+                for (unsigned int texSub = 0; texSub<(mtl->GetTextureCount(texTypes[texs])); texSub++) {
+                    aiString texFile("");
+                    aiGetMaterialString(mtl, AI_MATKEY_TEXTURE(texTypes[texs],texSub), &texFile);
+                    //adding textures rather than file names here...
+                    if (temp.textureFiles.find(texTypes[texs]) == temp.textureFiles.end()) {
+                        //create empty array at that location
+                        std::vector < Texture > ok;
+                        temp.textureFiles[ texTypes[texs] ] = ok;
+                    }
+                    std::string whatIsHappening = texFile.C_Str();
+                    Texture omgEvilTexture(dir+whatIsHappening);
+                    (temp.textureFiles[ texTypes[texs] ]).push_back( omgEvilTexture );
+                }
+            }
+            //loadTextures(temp);
+            //opacity
+            float opacity=1.0;
             aiGetMaterialFloat(mtl, AI_MATKEY_OPACITY, &opacity);
             diff.a = opacity;
             //using c interface instead of c++ here, because c++ wasn't working...not sure why
@@ -296,8 +327,7 @@ void Object::initializeObject(){
         }
 
         //check for uvs
-        /*if (uvs.size()>j) {
-            std::cout<<"Setting UVs Buffer"<<std::endl;
+        if (uvs.size()>j) {
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //not prepared to handle several textures.
@@ -308,8 +338,8 @@ void Object::initializeObject(){
         }
 
         //check colors
-        if ( colors.size()>j) {
-            std::cout<<"Setting Colors Buffer"<<std::endl;
+        /*if ( colors.size()>j) {
+            //std::cout<<"Setting Colors Buffer"<<std::endl;
             glGenBuffers(1, &spare);
             glBindBuffer(GL_ARRAY_BUFFER, spare);
             //not prepared to handle several colors either...
@@ -347,12 +377,21 @@ void Object::drawObject(){//may recieve view, projection, light if needed
     //iterate through all meshes (per material lighting and shading)
     for (unsigned int j = 0; j<indices.size(); j++) {
         if (materialIndices.size()>j && materials.size()>materialIndices[j]) {
-          //Light calculations as necessary
-          //std::cout<<"before materials "<<std::endl;
-          glUniform4fv(myProgram->lightin.loc_AmbProd, 1, glm::value_ptr(myProgram->light->amb*materials[materialIndices[j]].amb));
-          glUniform4fv(myProgram->lightin.loc_SpecProd, 1, glm::value_ptr(myProgram->light->spec*materials[materialIndices[j]].spec));
-          glUniform4fv(myProgram->lightin.loc_DiffProd, 1, glm::value_ptr(myProgram->light->diff*materials[materialIndices[j]].diff));
-          glUniform1f(myProgram->lightin.loc_Shin, materials[materialIndices[j]].shine);//ref
+            Material currentMat = materials[materialIndices[j]];
+            //Light calculations as necessary
+            //std::cout<<"before materials "<<std::endl;
+            glUniform4fv(myProgram->lightin.loc_AmbProd, 1, glm::value_ptr(myProgram->light->amb*currentMat.amb));
+            glUniform4fv(myProgram->lightin.loc_SpecProd, 1, glm::value_ptr(myProgram->light->spec*currentMat.spec));
+            glUniform4fv(myProgram->lightin.loc_DiffProd, 1, glm::value_ptr(myProgram->light->diff*currentMat.diff));
+            glUniform1f(myProgram->lightin.loc_Shin, currentMat.shine);//ref
+            if ( !materials[materialIndices[j]].textureFiles.empty() ) {
+                //just diffuse for now
+                if (currentMat.textureFiles[aiTextureType_DIFFUSE].size() > 0) {
+                    Texture temp = currentMat.textureFiles[aiTextureType_DIFFUSE][0];
+                    myProgram->setTexture( &(temp.image) );
+                    temp.bindTexture();
+                }
+            }
         } else {
           std::cout<<"Error with material Ranges."<<std::endl;
         }
@@ -386,8 +425,7 @@ void Object::drawObject(){//may recieve view, projection, light if needed
         }
 
         //check for uvs
-        /*if (uvs.size()>0) {
-            std::cout<<"using Uvs"<<std::endl;
+        if (uvs.size()>0) {
             glBindBuffer(GL_ARRAY_BUFFER, textureBuffers[j]);
             glVertexAttribPointer(myProgram->loc_uv,  // location of attribute
                               3,  // number of elements
@@ -401,8 +439,8 @@ void Object::drawObject(){//may recieve view, projection, light if needed
         }
 
         //check colors
-        if (colors.size()>0) {
-            std::cout<<"using colors"<<std::endl;
+        /*if (colors.size()>0) {
+            //std::cout<<"using colors"<<std::endl;
             glBindBuffer(GL_ARRAY_BUFFER, colorBuffers[j]);
             glVertexAttribPointer(myProgram->loc_color,
                               4,

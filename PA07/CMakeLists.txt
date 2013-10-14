@@ -31,7 +31,8 @@ set(CORELIBS
 	${OPENGL_LIBRARY} 
 	${ASSIMP_LIBRARIES} 
 	${IL_LIBRARIES} 
-	${ILU_LIBRARIES})
+	${ILU_LIBRARIES}
+	${ILUT_LIBRARIES})
 
 #set flags
 set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")

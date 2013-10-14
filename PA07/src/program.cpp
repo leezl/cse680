@@ -52,14 +52,11 @@ bool Program::compileShaders() {
 		//set default (vertices only, default colors)
 		vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/colorVertShader.vs");
     	fragment_shader = new Shader(GL_FRAGMENT_SHADER);
-	} else if (needsNormals && !needsColors && needsTextures) { // t,f,t //not implemented yet
+	} else if (needsNormals && !needsColors && needsTextures) { // t,f,t
         std::cout<<"Creating shader using vertices, normals and textures only."<<std::endl;
-		std::cerr<<"WARNING: chosen shader type not "
-		"implemented, using default type. May see errors"
-		" and unwanted behavior."<<std::endl;
 		//set default (vertices only, default colors)
-		vertex_shader = new Shader(GL_VERTEX_SHADER);
-    	fragment_shader = new Shader(GL_FRAGMENT_SHADER);
+		vertex_shader = new Shader(GL_VERTEX_SHADER, "assets/shaders/texBPVertShader.vs");
+    	fragment_shader = new Shader(GL_FRAGMENT_SHADER, "assets/shaders/texFragShader.fs");
 	} else if ( needsNormals &&  needsColors &&  !needsTextures) { // t,t,f //not implemented yet
         std::cout<<"Creating shader using vertices, normals, and colors only."<<std::endl;
 		std::cerr<<"WARNING: chosen shader type not "
@@ -174,6 +171,13 @@ bool Program::loadLocations() {
         std::cerr << "[F] V_UV NOT FOUND" << std::endl;
         if(needsTextures) return false;
     }
+    //texture image loc
+    loc_tex = glGetUniformLocation(program,
+                    "texture");
+    if ( loc_tex == -1 ) {
+        std::cerr<< "[f] texture NOT FOUND" << std::endl;
+        if (needsTextures) return false;
+    }
 
 	//load other locations...have defaults if don't exist
 	//Light Position
@@ -268,6 +272,18 @@ bool Program::setProjection(glm::mat4 * projectioner) {
 	}
 }
 
+bool Program::setTexture(GLuint * texI) {
+    glActiveTexture( GL_TEXTURE0 );
+    if (texI != NULL) {
+        glUniform1i(*texI, 0);
+        return true;
+    } else {
+        //hope we never make it here
+        glUniform1i(0, 0);
+        return true;
+    }
+}
+
 //vector later
 bool Program::setLightPosition(Light * lighter, glm::mat4 * viewer) {
     //std::cout<<"Setting Light "<<std::endl;
@@ -335,6 +351,7 @@ bool Program::startProgram() {
     }
     if (loc_uv!=-1) {
     	glEnableVertexAttribArray(loc_uv);
+        //std::cout<<"enabling uv"<<std::endl;
     }
     //send attributes (handled elsewhere)
     return true;

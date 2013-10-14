@@ -36,7 +36,7 @@ bool rotateFlag=false;
 float scaler = 1.0;
 float dist = -12.0;
 float height = 6.0;
-bool disableColor=true, disableTextures=true;
+bool disableColor=true, disableTextures=false;
 
 // transform matrices
 //std::vector<Objects> objects;  // stores model matices by buffer index
@@ -91,18 +91,20 @@ int main(int argc, char **argv) {
     path = filename.substr(0, mid);
     std::cout<<"Path: "<<path<<std::endl;
 
-    std::cout<<"Loading "<<filename<<std::endl;
-    whatIsIt = new Object(path+"/", filename);
-    sun = new Object("assets/models/", "assets/models/sun.obj");
-    sun->flipNormals();//so it glows with the light inside
 
     // Initialize glut
-    ilInit();//initialize devil
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
     // Name and create the Window
     glutCreateWindow("Project 07");
+    std::cout<<"Loading "<<filename<<std::endl;
+    ilInit();//initialize devil
+    iluInit();//more
+    ilutRenderer(ILUT_OPENGL);
+    whatIsIt = new Object(path+"/", filename);
+    sun = new Object("assets/models/", "assets/models/sun.obj");
+    sun->flipNormals();//so it glows with the light inside
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -269,7 +271,7 @@ bool initialize() {
     sun->initializeObject();
 
     programShading = new Program(true, false, false);//normals, !color, !texture
-    programTextures = new Program(true, false, false);//true);//normals, !color, texture (no blending)
+    programTextures = new Program(true, false, true);//true);//normals, !color, texture (no blending)
 
     if (whatIsIt->hasTextures && !disableTextures) {
         std::cout<<"using textures"<<std::endl;
@@ -307,7 +309,7 @@ bool initialize() {
     light.amb = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     light.diff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     light.spec = glm::vec4(1.0f, 1.0f, 0.5f, 1.0f);
-    std::cout<<"Light First: "<<light.pos[0]<<' '<<light.pos[1]<<' '<<light.pos[2]<<std::endl;
+    //std::cout<<"Light First: "<<light.pos[0]<<' '<<light.pos[1]<<' '<<light.pos[2]<<std::endl;
 
     //ensure camera outside of object
     view = glm::lookAt(glm::vec3(0.0, height, dist),  // Eye Position
@@ -326,9 +328,9 @@ bool initialize() {
     programTextures->addView(view);
     programShading->addProjection(projection);
     programTextures->addProjection(projection);
-    std::cout<<"FIRST Main view loc "<<&view<<std::endl;
-    std::cout<<"FIRST Main projection loc "<<&projection<<std::endl;
-    std::cout<<"FIRST Main light loc "<<&light<<std::endl;
+    //std::cout<<"FIRST Main view loc "<<&view<<std::endl;
+    //std::cout<<"FIRST Main projection loc "<<&projection<<std::endl;
+    //std::cout<<"FIRST Main light loc "<<&light<<std::endl;
 
 
     // enable depth testing

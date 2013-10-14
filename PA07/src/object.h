@@ -6,6 +6,7 @@ Delete other load Funcitons when done picking one
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <map>
 #include <string>
 #include <algorithm> 
 #include <typeinfo>
@@ -33,6 +34,10 @@ Keep in Assimp aiScene: store the aiScene, and iterate through it in the draw fu
 */
 
 struct Material {
+    std::string name;
+    int shadingMode;
+    std::map< aiTextureType, std::vector< Texture > > textureFiles; 
+    float refraction;
     float shine;
     glm::vec4 amb;
     glm::vec4 diff;
@@ -56,8 +61,7 @@ class Object {
     //Mode of draw: elements
     GLenum ErrorCheckValue;
     void checkError(std::string where);
-    bool loadAssImp(std::string path);
-    
+    bool loadAssImp(std::string dir, std::string path);
   public:
     glm::mat4 model;//this objects model
     bool hasMaterials, hasTextures;//determine which shader to use
