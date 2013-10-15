@@ -6,6 +6,74 @@ Liesl Wigand
 */
 #include "object.h"
 
+Object::Object() {
+    hasMaterials=false;
+    hasTextures=false;
+    max[0] = max[1] = max[2] = -1;
+    min[0] = min[1] = min[2] = 1;
+    center[0]=center[1]=center[2] = 0;
+    name = "DefaultCube";
+    //lame cube
+    indices.reserve(36);
+    vertices.reserve(24);
+    normals.reserve(24);
+    std::vector< glm::vec3 > temp;
+    //vertices
+    temp.push_back(glm::vec3(1.0f,1.0f,1.0f));//0 //right, upper, front
+    temp.push_back(glm::vec3(-1.0f,1.0f,1.0f));//1 //left, upper, front
+    temp.push_back(glm::vec3(-1.0f,-1.0f,1.0f));//2 //left, lower, front
+    temp.push_back(glm::vec3(-1.0f,1.0f,-1.0f));//3 //left, upper, back
+    temp.push_back(glm::vec3(1.0f,1.0f,-1.0f));//4 //right, upper, back
+    temp.push_back(glm::vec3(1.0f,-1.0f,-1.0f));//5 //right, lower, back
+    temp.push_back(glm::vec3(1.0f,-1.0f,1.0f));//6 //right, lower, front
+    temp.push_back(glm::vec3(-1.0f,-1.0f,-1.0f));//7 //left, lower, back
+    vertices.push_back(temp);
+    //indices
+    std::vector < unsigned int > temp2;
+    temp2.push_back(3);//back //d
+    temp2.push_back(4);
+    temp2.push_back(5);
+    temp2.push_back(3);
+    temp2.push_back(5);
+    temp2.push_back(7);
+    //
+    temp2.push_back(0);//front
+    temp2.push_back(1);
+    temp2.push_back(2);
+    temp2.push_back(0);
+    temp2.push_back(2);
+    temp2.push_back(6);
+    //
+    temp2.push_back(0);//right //d
+    temp2.push_back(4);
+    temp2.push_back(5);
+    temp2.push_back(0);
+    temp2.push_back(5);
+    temp2.push_back(6);
+    //
+    temp2.push_back(0);//upper //d
+    temp2.push_back(1);
+    temp2.push_back(3);
+    temp2.push_back(0);
+    temp2.push_back(3);
+    temp2.push_back(4);
+    //
+    temp2.push_back(1);//left //d
+    temp2.push_back(2);
+    temp2.push_back(3);
+    temp2.push_back(2);
+    temp2.push_back(3);
+    temp2.push_back(7);
+    //
+    temp2.push_back(2);//lower //d
+    temp2.push_back(5);
+    temp2.push_back(6);
+    temp2.push_back(2);
+    temp2.push_back(5);
+    temp2.push_back(7);
+    indices.push_back(temp2);
+}
+
 Object::Object(std::string path, std::string filename){
     hasTextures=false;
     hasMaterials=false;
@@ -420,7 +488,7 @@ void Object::drawObject(){//may recieve view, projection, light if needed
                 //glBindTexture(GL_TEXTURE_2D,0);
             }
         } else {
-          std::cout<<"Error with material Ranges."<<std::endl;
+          //std::cout<<"Error with material Ranges."<<std::endl;
         }
         //set vertices
         //if you don't have these, soemthing is seriously wrong

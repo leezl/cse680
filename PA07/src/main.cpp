@@ -61,6 +61,15 @@ void cleanUp();
 float getDT();
 std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 
+inline bool file_exists_test (const std::string& name) {
+    if (FILE *file = fopen(name.c_str(), "r")) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }   
+}
+
 
 // --Main
 // PA2:
@@ -119,7 +128,11 @@ int main(int argc, char **argv) {
     glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
     whatIsIt = new Object(path+"/", filename);
     //whatIsIt->flipNormals();
-    sun = new Object("assets/models/", "assets/models/sun.obj");
+    if(file_exists_test("assets/models/sun.obj")) {
+        sun = new Object("assets/models/", "assets/models/sun.obj");
+    } else {
+        sun = new Object();
+    }
     sun->flipNormals();//so it glows with the light inside
 
     // Set all of the callbacks to GLUT that we need
@@ -179,6 +192,7 @@ void update() {
 
     //move sun 
     sun->model = glm::translate(glm::mat4(1.0f), glm::vec3(light.pos.x, light.pos.y, light.pos.z));
+    sun->model = glm::scale(sun->model, glm::vec3(0.15, 0.15, 0.15));
 
     //move view...
     glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);

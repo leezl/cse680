@@ -65,6 +65,7 @@ class Object {
   public:
     glm::mat4 model;//this objects model
     bool hasMaterials, hasTextures;//determine which shader to use
+    Object();
     Object(std::string path, std::string filename);
     ~Object();
     void initializeObject();
