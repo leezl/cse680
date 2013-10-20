@@ -20,9 +20,10 @@ find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(DevIL REQUIRED)
+find_package(Bullet REQUIRED)
 
 include_directories(${IL_INCLUDE_DIR})
-message("IL directories " ${IL_INCLUDE_DIR})
+include_directories(${BULLET_INCLUDE_DIR})
 include_directories(${PA_SOURCE_DIR}/src)
 
 #only object needs Assimp
@@ -34,6 +35,7 @@ set(CORELIBS
 	${IL_LIBRARIES} 
 	${ILU_LIBRARIES}
 	#${ILUT_LIBRARIES}
+	${BULLET_LIBRARIES}
 	)
 
 #set flags
@@ -48,7 +50,8 @@ set(SOURCES
 	${PA_SOURCE_DIR}/src/shader.cpp 
 	${PA_SOURCE_DIR}/src/object.cpp
 	${PA_SOURCE_DIR}/src/program.cpp
-	${PA_SOURCE_DIR}/src/texture.cpp)
+	${PA_SOURCE_DIR}/src/texture.cpp
+	${PA_SOURCE_DIR}/src/physics.cpp)
 
 add_executable(pa ${SOURCES})
 
