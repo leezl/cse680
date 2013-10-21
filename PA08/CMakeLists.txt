@@ -13,6 +13,9 @@ SET(CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules")
 #on one the first path worked, on another the second...
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PA_SOURCE_DIR}/cmake/Modules/")
 set(PA_MODULE_PATH ${PA_MODULE_PATH} "${PA_SOURCE_DIR}/cmake/Modules/")
+SET( BULLET_ROOT "/home/liesl/Projects/bullet-2.81-rev2613")
+set (BULLET_BUILD_DIR "/home/liesl/Projects/bullet-2.81-rev2613/bulletBuild")
+set (BULLET_SOURCE_DIR "/usr/include/bullet")
 
 #find libraries
 find_package(Assimp REQUIRED)
@@ -20,14 +23,15 @@ find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(DevIL REQUIRED)
-find_package(Bullet REQUIRED)
+#several bullet finders online, none in my cmake...
+find_package(BULLET REQUIRED)
 
 include_directories(${IL_INCLUDE_DIR})
 include_directories(${BULLET_INCLUDE_DIR})
-message("bullets " ${BULLET_INCLUDE_DIR})
+#message("bullets " ${BULLET_INCLUDE_DIR})
 include_directories(${PA_SOURCE_DIR}/src)
 
-message("Libs " ${BULLET_LIBRARIES})
+#message("Libs " ${BULLET_LIBRARIES})
 
 #only object needs Assimp
 set(CORELIBS 
@@ -38,7 +42,10 @@ set(CORELIBS
 	${IL_LIBRARIES} 
 	${ILU_LIBRARIES}
 	#${ILUT_LIBRARIES}
-	${BULLET_LIBRARIES}
+	${BULLET_BulletDynamics_LIBRARY}
+	${BULLET_BulletCollision_LIBRARY}
+	${BULLET_LinearMath_LIBRARY}
+	#${BULLET_LIBRARIES}
 	#${BULLET_SoftBody_LIBRARY}
 	#${BULLET_BulletDynamics_LIBRARY}
 	#${BULLET_BulletCollision_LIBRARY}
@@ -47,7 +54,7 @@ set(CORELIBS
 	#	#${ILUT_LIBRARIES}
 	#${BULLET_LIBRARIES}
 
-message("oh ", ${CORELIBS})
+#message("oh ", ${CORELIBS})
 
 #set flags
 set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")
