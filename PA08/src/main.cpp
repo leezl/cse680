@@ -133,10 +133,10 @@ int main(int argc, char **argv) {
     //ilutRenderer(ILUT_OPENGL);
     glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
     //whatIsIt = new Object(path+"/", filename);
-    board = new Object(path+"/", "board.obj");
-    cube = new Object(path+"/", "cube.obj");
-    cylinder = new Object(path+"/", "cylinder.obj");
-    sphere = new Object(path+"/", "sphere.obj");
+    board = new Object(path+"/", "assets/models/board.obj");
+    cube = new Object(path+"/", "assets/models/cube.obj");
+    cylinder = new Object(path+"/", "assets/models/cylinder.obj");
+    sphere = new Object(path+"/", "assets/models/sphere.obj");
     //whatIsIt->flipNormals();
     if(file_exists_test("assets/models/sun.obj")) {
         sun = new Object("assets/models/", "assets/models/sun.obj");
@@ -324,6 +324,33 @@ bool initialize() {
         board->setProgram(programTextures);
     } else {
         board->setProgram(programShading);
+        /*std::cout<<"object shader ";
+        std::cout<<programShading;
+        std::cout<<std::endl;*/
+    }
+    if (cube->hasTextures && !disableTextures) {
+        std::cout<<"using textures"<<std::endl;
+        cube->setProgram(programTextures);
+    } else {
+        cube->setProgram(programShading);
+        /*std::cout<<"object shader ";
+        std::cout<<programShading;
+        std::cout<<std::endl;*/
+    }
+    if (cylinder->hasTextures && !disableTextures) {
+        std::cout<<"using textures"<<std::endl;
+        cylinder->setProgram(programTextures);
+    } else {
+        cylinder->setProgram(programShading);
+        /*std::cout<<"object shader ";
+        std::cout<<programShading;
+        std::cout<<std::endl;*/
+    }
+    if (sphere->hasTextures && !disableTextures) {
+        std::cout<<"using textures"<<std::endl;
+        sphere->setProgram(programTextures);
+    } else {
+        sphere->setProgram(programShading);
         /*std::cout<<"object shader ";
         std::cout<<programShading;
         std::cout<<std::endl;*/
