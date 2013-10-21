@@ -24,6 +24,7 @@ Delete other load Funcitons when done picking one
 
 #include "program.h"
 #include "texture.h"
+#include "physics.h"
 
 #ifndef OBJECT_H_
 #define OBJECT_H_
@@ -44,6 +45,12 @@ struct Material {
     glm::vec4 spec;
 };
 
+struct ObjectPhysics {
+    btCollisionShape* objectShape;
+    btDefaultMotionState* objectMotionState;
+    btRigidBody* objectRigidBody;
+};
+
 class Object {
   private:
     std::vector<GLuint> elementBuffers, geometryBuffers, normalBuffers, colorBuffers, textureBuffers;
@@ -60,19 +67,27 @@ class Object {
     std::vector< unsigned int > materialIndices;
     //Mode of draw: elements
     GLenum ErrorCheckValue;
+    int totalTriangles, totalVerts;
     void checkError(std::string where);
     bool loadAssImp(std::string dir, std::string path);
   public:
     glm::mat4 model;//this objects model
+    glm::vec3 translate;
+    glm::vec3 rotate;
+    glm::vec3 scale;
+    ObjectPhysics physics;
     bool hasMaterials, hasTextures;//determine which shader to use
     Object();
     Object(std::string path, std::string filename);
     ~Object();
     void initializeObject();
+    void setTransforms(glm::vec3 trans, glm::vec3 rot, glm::vec3 sca, PhysicsWorld* world=NULL, std::string moves = "static");
     void cleanUp();
     void drawObject();
     void flipNormals();
     void setProgram(Program * program);
+    void setPhysics(std::string collisionType="mesh", std::string motionType="ground", PhysicsWorld* world=NULL);
+    void updateModel();
     float center[3];
     float max[3];
     float min[3];

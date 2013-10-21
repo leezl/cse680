@@ -24,7 +24,10 @@ find_package(Bullet REQUIRED)
 
 include_directories(${IL_INCLUDE_DIR})
 include_directories(${BULLET_INCLUDE_DIR})
+message("bullets " ${BULLET_INCLUDE_DIR})
 include_directories(${PA_SOURCE_DIR}/src)
+
+message("Libs " ${BULLET_LIBRARIES})
 
 #only object needs Assimp
 set(CORELIBS 
@@ -36,7 +39,15 @@ set(CORELIBS
 	${ILU_LIBRARIES}
 	#${ILUT_LIBRARIES}
 	${BULLET_LIBRARIES}
+	#${BULLET_SoftBody_LIBRARY}
+	#${BULLET_BulletDynamics_LIBRARY}
+	#${BULLET_BulletCollision_LIBRARY}
+	#${BULLET_LinearMath_LIBRARY}
 	)
+	#	#${ILUT_LIBRARIES}
+	#${BULLET_LIBRARIES}
+
+message("oh ", ${CORELIBS})
 
 #set flags
 set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")

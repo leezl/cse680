@@ -1,22 +1,28 @@
 /*
 Physics World cpp
 */
+#include "physics.h"
 
 PhysicsWorld::PhysicsWorld() {
 	broadphase = new btDbvtBroadphase();
 	collisionConf = new btDefaultCollisionConfiguration();
 	dispatcher = new btCollisionDispatcher(collisionConf);
 	solver = new btSequentialImpulseConstraintSolver;
-	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConf);
 	dynamicsWorld->setGravity(btVector3(0,-10,0));
 }
 
-PhysicsWorld::addRigidBodyObject(btRigidBody* object) {
+//either call this or access dynamicsWorld directly: I made it public
+void PhysicsWorld::addRigidBodyObject(btRigidBody* object) {
 	if (object != NULL) {
 		dynamicsWorld->addRigidBody(object);
 	} else {
-		std::cerr<<"WHy was that rigidBody pointer NULL?"<<std::endl;
+		std::cerr<<"Why was that rigidBody pointer NULL?"<<std::endl;
 	}
+}
+
+void PhysicsWorld::stepWorld(float someTime, int whatisthis) {
+	dynamicsWorld->stepSimulation(someTime, whatisthis);
 }
 
 PhysicsWorld::~PhysicsWorld() {

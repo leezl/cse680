@@ -77,6 +77,11 @@ Object::Object() {
 Object::Object(std::string path, std::string filename){
     hasTextures=false;
     hasMaterials=false;
+    totalTriangles = 0;
+    totalVerts = 0;
+    scale = glm::vec3(1.0,1.0,1.0);
+    translate = glm::vec3(0.0,0.0,0.0);
+    rotate = glm::vec3(0.0,0.0,0.0);
     std::cout<<"Creating Object "<<path+filename<<std::endl;
     max[0] = max[1] = max[2] = -900;
     min[0] = min[1] = min[2] = 900;
@@ -124,6 +129,98 @@ void Object::setProgram(Program * program) {
     /*std::cout<<"object program ";
     std::cout<<myProgram;
     std::cout<<"\n";*/
+}
+
+void Object::setPhysics(std::string collisionType, std::string motionType, PhysicsWorld* world) {
+    //m_indexVertexArrays = new btTriangleIndexVertexArray(totalTriangles,
+    //    gIndices,
+    //    indexStride,
+    //    totalVerts,(btScalar*) &gVertices[0].x(),vertStride);
+    //trimeshShape  = new btBvhTriangleMeshShape(m_indexVertexArrays,useQuantizedAabbCompression,aabbMin,aabbMax);
+    if (collisionType == "mesh") {
+        int indexStride = 3*sizeof(int);
+        int vertStride = sizeof(btVector3);
+        btVector3* gVertices = new btVector3[totalVerts];
+        int* gIndices = new int[totalTriangles*3];
+
+        int indicesSoFar = 0;
+        int verticesSoFar = 0;
+        if (indices.size()!=vertices.size()) {
+            std::cerr<<"Indices and vertices have different lengths. "<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        //this is so slow...
+        for (unsigned int i=0; i<indices.size(); i++) {
+            //appends the indices to the end of our giant index array
+            //add offset
+            for (unsigned int j = 0; j<indices[i].size(); j++) {
+                gIndices[(indicesSoFar+j)] = indices[i][j]+(verticesSoFar);
+            }
+            for (unsigned int j = 0; j<vertices[i].size(); j++) {
+                gVertices[(verticesSoFar+j)].setValue(vertices[i][j].x, vertices[i][j].y, vertices[i][j].z);
+            }
+            //add offset into gIndices
+            indicesSoFar += indices[i].size();
+            verticesSoFar += vertices[i].size();
+        }
+
+        btTriangleIndexVertexArray* m_indexVertexArrays = new btTriangleIndexVertexArray(totalTriangles,
+            gIndices,
+            indexStride,
+            totalVerts, (btScalar*) &gVertices[0].x(), vertStride);
+        btBvhTriangleMeshShape* trimeshShape  = new btBvhTriangleMeshShape(m_indexVertexArrays, true);
+        physics.objectShape = trimeshShape;
+    } else {
+        //what other types do we want? default sphere? cube?
+        btSphereShape* trimeshShape = new btSphereShape(1);
+        physics.objectShape = trimeshShape;
+    }
+
+    physics.objectShape->setLocalScaling(btVector3(scale.x, scale.y, scale.z));
+
+    //set motion
+    if (motionType == "ground") {
+        btDefaultMotionState* motionState = new btDefaultMotionState(btTransform(btQuaternion(rotate.x, rotate.y, rotate.z,1),btVector3(translate.x,translate.y,translate.z)));
+        physics.objectMotionState = motionState;
+    } else {
+        //default is, non ground? Same for now, cuz why not?
+        btDefaultMotionState* motionState = new btDefaultMotionState(btTransform(btQuaternion(rotate.x, rotate.y, rotate.z,1),btVector3(translate.x,translate.y,translate.z)));
+        physics.objectMotionState = motionState;
+    }
+
+    //set rigidbody
+    if (motionType == "ground") {
+        btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(0,physics.objectMotionState,physics.objectShape,btVector3(0,0,0));
+        btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
+        physics.objectRigidBody = rigidBody;
+    } else {
+        btScalar mass = 1;
+        btVector3 fallInertia(0,0,0);
+        physics.objectShape->calculateLocalInertia(mass, fallInertia);
+        btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, physics.objectMotionState, physics.objectShape, fallInertia);
+        btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
+        physics.objectRigidBody = rigidBody;
+    }
+
+    //add to dynamic World
+    world->addRigidBodyObject(physics.objectRigidBody);
+
+}
+
+void Object::updateModel() {
+    //btTransform trans;
+    //fallRigidBody->getMotionState()->getWorldTransform(trans);
+    if (physics.objectRigidBody !=NULL) {
+        btTransform transform;
+        physics.objectRigidBody->getMotionState()->getWorldTransform(transform);
+        btQuaternion rots = transform.getRotation();
+        btVector3 trans = transform.getOrigin();
+        btVector3 rotAxis = rots.getAxis();
+        //this may be in the wrong order
+        model = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
+        model = glm::rotate(model, rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
+        model = glm::translate(model, glm::vec3(trans.getX(), trans.getY(), trans.getZ()));
+    }
 }
 
 void Object::checkError(std::string where=" "){
@@ -178,6 +275,7 @@ bool Object::loadAssImp(std::string dir, std::string path){
         std::vector<glm::vec4> localColor;
         aiVector3D pos;
         localVert.reserve(mesh->mNumVertices);
+        totalVerts += mesh->mNumVertices;
         for(unsigned int i=0; i<mesh->mNumVertices; i++) {
             pos = mesh->mVertices[i];
             localVert.push_back(glm::vec3(pos.x, pos.y, pos.z));
@@ -258,6 +356,7 @@ bool Object::loadAssImp(std::string dir, std::string path){
             std::vector< unsigned int > meshIndices;//per mesh, collect all faces (every 3 drawn as face)
             //std::cout<<"Faces: "<<mesh->mNumFaces<<std::endl;
             meshIndices.reserve(3*mesh->mNumFaces);//all traingulated
+            totalTriangles += mesh->mNumFaces;
             for (unsigned int i=0; i<mesh->mNumFaces; i++) {//per face
                 // The model should be all triangle since we triangulated
                 //std::cout<<"number of indices in face: "<<mesh->mFaces[i].mNumIndices<<std::endl;
@@ -356,9 +455,21 @@ bool Object::loadAssImp(std::string dir, std::string path){
         }
     }
 
-
     //assume all's well if we make it here
     return true;
+}
+
+void Object::setTransforms(glm::vec3 trans, glm::vec3 rot, glm::vec3 sca, PhysicsWorld* world, std::string moves) {
+    translate = trans;
+    rotate =rot;
+    scale = sca;
+    if (world != NULL) {
+        setPhysics(std::string("mesh"), moves, world);
+    } else {
+        physics.objectRigidBody=NULL;
+        physics.objectShape=NULL;
+        physics.objectMotionState=NULL;
+    }
 }
 
 void Object::initializeObject(){

@@ -99,7 +99,7 @@ output: char * containing shader loaded from filename
 char* Shader::loadShader(char* filename) {
     //open file, check exists and open
     std::ifstream shaderfile;
-    char* shadercode;
+    char* shadercode=NULL;
     shaderfile.open(filename);
     if (!shaderfile.good())
     {

@@ -1,7 +1,10 @@
 /*
 Physics World: Store stuff about our physics setup here, so that it doesn't clutter main so badly
 */
-#include <btBulletDynamicCommon.h>
+#include <iostream>
+#include <btBulletDynamicsCommon.h>
+#include <LinearMath/btAlignedObjectArray.h>
+//#include <btBulletWorldImporter.h>
 
 class PhysicsWorld{
 public:
@@ -12,8 +15,8 @@ public:
 	void addRigidBodyObject(btRigidBody* object);
 private:
 	btBroadphaseInterface* broadphase;
-	btDefaultCollisionConf* collisionConf;
+	btDefaultCollisionConfiguration* collisionConf;
 	btCollisionDispatcher* dispatcher;
-	btSequentialImpulseCOnstraintSolver* solver;
+	btSequentialImpulseConstraintSolver* solver;
 
 };

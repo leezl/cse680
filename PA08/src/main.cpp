@@ -29,12 +29,14 @@ int w = 640, h = 480;  // Window size
 Program * programShading=NULL;
 Program * programTextures=NULL;
 //std::vector<Object* > objects;
-Object *whatIsIt=NULL; //stores object. Yay. Gluint, Vertices, Indices, loader
+//Object *whatIsIt=NULL; //stores object. Yay. Gluint, Vertices, Indices, loader
 Object *board=NULL;
 Object *cylinder=NULL;
 Object *sphere=NULL;
 Object *cube=NULL;
 Object *sun=NULL;
+PhysicsWorld* dynamicWorld;
+
 float rotationSpeed = 120.0;
 bool rotateFlag=false;
 float scaler = 1.0;
@@ -82,27 +84,27 @@ inline bool file_exists_test (const std::string& name) {
 int main(int argc, char **argv) {
     //need filename for object file...
     std::string filename;
-    std::string path;
-    if (argc<2) {
+    std::string path="assets/models";
+    /*if (argc<2) {
         std::cerr<<"Wrong number of arguments. Backup Plan: cin. "<<std::endl;
         std::cout<<"What's the name of the obj file? (include path and ext...) > ";
         std::cin>>filename;
     } else {
         filename = argv[1];
-    }
+    }*/
 
     //my default path and ext adder
     //filename.insert(0, "assets/models/");
     //filename.append(".obj");
     //parse into file and path; assume path is also used for mtl
-    std::size_t found = filename.find("/");
+    /*std::size_t found = filename.find("/");
     std::size_t mid = 0;
     while ( found != std::string::npos) {
         mid = found; //grab old end of path
         found  = filename.find("/", mid+1); //find next directory
     }
     path = filename.substr(0, mid);
-    std::cout<<"Path: "<<path<<std::endl;
+    std::cout<<"Path: "<<path<<std::endl;*/
 
 
     // Initialize glut
@@ -110,7 +112,7 @@ int main(int argc, char **argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
     // Name and create the Window
-    glutCreateWindow("Project 07");
+    glutCreateWindow("Project 08");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -130,7 +132,11 @@ int main(int argc, char **argv) {
     iluInit();//more
     //ilutRenderer(ILUT_OPENGL);
     glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
-    whatIsIt = new Object(path+"/", filename);
+    //whatIsIt = new Object(path+"/", filename);
+    board = new Object(path+"/", "board.obj");
+    cube = new Object(path+"/", "cube.obj");
+    cylinder = new Object(path+"/", "cylinder.obj");
+    sphere = new Object(path+"/", "sphere.obj");
     //whatIsIt->flipNormals();
     if(file_exists_test("assets/models/sun.obj")) {
         sun = new Object("assets/models/", "assets/models/sun.obj");
@@ -167,7 +173,12 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //draw object
-    whatIsIt->drawObject(); //object: handles program setup
+    //whatIsIt->drawObject(); //object: handles program setup
+    board->drawObject();
+    cube->drawObject();
+    cylinder->drawObject();
+    sphere->drawObject();
+
     sun->drawObject(); //object
 
     // swap the buffers
@@ -191,15 +202,24 @@ void update() {
     }
 
     //move object
-    whatIsIt->model = glm::scale(glm::mat4(1.0f), glm::vec3(scaler, scaler, scaler));
-    whatIsIt->model = glm::rotate(whatIsIt->model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    //whatIsIt->model = glm::scale(glm::mat4(1.0f), glm::vec3(scaler, scaler, scaler));
+    //whatIsIt->model = glm::rotate(whatIsIt->model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+    std::cout<<dt<<','<<std::endl;
+    dynamicWorld->stepWorld(dt, 10);
+    //update all the objects
+    //btTransform trans;
+    //fallRigidBody->getMotionState()->getWorldTransform(trans);
+    board->updateModel();
+    cube->updateModel();
+    cylinder->updateModel();
+    sphere->updateModel();
 
     //move sun 
     sun->model = glm::translate(glm::mat4(1.0f), glm::vec3(light.pos.x, light.pos.y, light.pos.z));
     sun->model = glm::scale(sun->model, glm::vec3(0.15, 0.15, 0.15));
 
     //move view...
-    glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
+    glm::vec3 center  = glm::vec3(board->center[0], board->center[1], board->center[2]);
     view = glm::lookAt(glm::vec3(0.0, height, dist),  // Eye Position
                        center,//glm::vec3(0.0, 0.0, 0.0),  // Focus point
                        glm::vec3(0.0, 1.0, 0.0));  // Positive Y is up
@@ -281,17 +301,29 @@ bool initialize() {
     // Initialize basic geometry and shaders for this example
 
     // Create a Vertex Buffer object to store this vertex info on the GPU
-    whatIsIt->initializeObject();
+    //whatIsIt->initializeObject();
+    board->initializeObject();
+    cube->initializeObject();
+    sphere->initializeObject();
+    cylinder->initializeObject();
     sun->initializeObject();
+
+    dynamicWorld = new PhysicsWorld();
+
+    //physics init
+    board->setTransforms(glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground");
+    cube->setTransforms(glm::vec3(0.5, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "static");
+    sphere->setTransforms(glm::vec3(-0.5, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
+    cylinder->setTransforms(glm::vec3(0.0, 0.5, -0.5), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
 
     programShading = new Program(true, false, false);//normals, !color, !texture
     programTextures = new Program(true, false, true);//true);//normals, !color, texture (no blending)
 
-    if (whatIsIt->hasTextures && !disableTextures) {
+    if (board->hasTextures && !disableTextures) {
         std::cout<<"using textures"<<std::endl;
-        whatIsIt->setProgram(programTextures);
+        board->setProgram(programTextures);
     } else {
-        whatIsIt->setProgram(programShading);
+        board->setProgram(programShading);
         /*std::cout<<"object shader ";
         std::cout<<programShading;
         std::cout<<std::endl;*/
@@ -311,9 +343,9 @@ bool initialize() {
     // the view matrix will need to be more dynamic
     //  ...Like you should update it before you render more dynamic
     //Look at center of object:
-    glm::vec3 center  = glm::vec3(whatIsIt->center[0], whatIsIt->center[1], whatIsIt->center[2]);
-    glm::vec3 max = glm::vec3(whatIsIt->max[0], whatIsIt->max[1], whatIsIt->max[2]);
-    glm::vec3 min = glm::vec3(whatIsIt->min[0], whatIsIt->min[1], whatIsIt->min[2]);
+    glm::vec3 center  = glm::vec3(board->center[0], board->center[1], board->center[2]);
+    glm::vec3 max = glm::vec3(board->max[0], board->max[1], board->max[2]);
+    glm::vec3 min = glm::vec3(board->min[0], board->min[1], board->min[2]);
     dist = max[2]+(0.5*(max[2]-min[2]));
     height = max[1]+(0.5*(max[1]-min[1]));
     //ensure light outside of object
@@ -357,7 +389,11 @@ void cleanUp() {
     // Clean up, Clean up
     delete programShading;
     delete programTextures;
-    //whatIsIt->cleanUp();
+    delete dynamicWorld;
+    board->cleanUp();
+    cube->cleanUp();
+    cylinder->cleanUp();
+    sphere->cleanUp();
 }
 
 // returns the time delta
