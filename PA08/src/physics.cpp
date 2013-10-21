@@ -4,6 +4,7 @@ Physics World cpp
 #include "physics.h"
 
 PhysicsWorld::PhysicsWorld() {
+	std::cout<<"Initializing World Dynamics "<<std::endl;
 	broadphase = new btDbvtBroadphase();
 	collisionConf = new btDefaultCollisionConfiguration();
 	dispatcher = new btCollisionDispatcher(collisionConf);

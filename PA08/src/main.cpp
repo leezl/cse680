@@ -204,8 +204,8 @@ void update() {
     //move object
     //whatIsIt->model = glm::scale(glm::mat4(1.0f), glm::vec3(scaler, scaler, scaler));
     //whatIsIt->model = glm::rotate(whatIsIt->model, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-    std::cout<<dt<<','<<std::endl;
-    dynamicWorld->stepWorld(dt, 10);
+    //std::cout<<dt<<','<<std::endl;
+    dynamicWorld->stepWorld(dt, 1);
     //update all the objects
     //btTransform trans;
     //fallRigidBody->getMotionState()->getWorldTransform(trans);
@@ -300,7 +300,8 @@ void arrow_keys(int key, int x, int y) {
 bool initialize() {
     // Initialize basic geometry and shaders for this example
 
-    // Create a Vertex Buffer object to store this vertex info on the GPU
+    dynamicWorld = new PhysicsWorld();
+
     //whatIsIt->initializeObject();
     board->initializeObject();
     cube->initializeObject();
@@ -308,13 +309,11 @@ bool initialize() {
     cylinder->initializeObject();
     sun->initializeObject();
 
-    dynamicWorld = new PhysicsWorld();
-
     //physics init
-    board->setTransforms(glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground");
-    cube->setTransforms(glm::vec3(0.5, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "static");
-    sphere->setTransforms(glm::vec3(-0.5, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
-    cylinder->setTransforms(glm::vec3(0.0, 0.5, -0.5), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
+    board->setTransforms(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground");
+    cube->setTransforms(glm::vec3(0.5, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "ground");
+    sphere->setTransforms(glm::vec3(-1.0, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
+    cylinder->setTransforms(glm::vec3(0.0, 0.5, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
 
     programShading = new Program(true, false, false);//normals, !color, !texture
     programTextures = new Program(true, false, true);//true);//normals, !color, texture (no blending)

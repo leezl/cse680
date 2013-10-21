@@ -122,6 +122,15 @@ void Object::cleanUp(){
             }
         }
     }
+    if (physics.objectShape != NULL) {
+        delete physics.objectShape;
+    }
+    if (physics.objectMotionState != NULL) {
+        delete physics.objectMotionState;
+    }
+    if (physics.objectRigidBody != NULL) {
+        delete physics.objectRigidBody;
+    }
 }
 
 void Object::setProgram(Program * program) {
@@ -132,11 +141,7 @@ void Object::setProgram(Program * program) {
 }
 
 void Object::setPhysics(std::string collisionType, std::string motionType, PhysicsWorld* world) {
-    //m_indexVertexArrays = new btTriangleIndexVertexArray(totalTriangles,
-    //    gIndices,
-    //    indexStride,
-    //    totalVerts,(btScalar*) &gVertices[0].x(),vertStride);
-    //trimeshShape  = new btBvhTriangleMeshShape(m_indexVertexArrays,useQuantizedAabbCompression,aabbMin,aabbMax);
+    std::cout<<"Setting object Physics "<<std::endl;
     if (collisionType == "mesh") {
         int indexStride = 3*sizeof(int);
         int vertStride = sizeof(btVector3);
