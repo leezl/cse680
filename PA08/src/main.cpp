@@ -182,6 +182,8 @@ void render() {
 
     sun->drawObject(); //object
 
+    dynamicWorld->dynamicsWorld->debugDrawWorld();
+
     // swap the buffers
     glutSwapBuffers();
 }
@@ -318,7 +320,7 @@ bool initialize() {
     //physics init
     board->setTransforms(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground", "mesh");
     cube->setTransforms(glm::vec3(0.0, 0.2, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "static", "convex");
-    sphere->setTransforms(glm::vec3(-1.0, 5.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
+    sphere->setTransforms(glm::vec3(-1.0, 5.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "sphere");
     cylinder->setTransforms(glm::vec3(0.0, 5.0, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
     //decided to move the cube (pretending its a paddle)
     cubeTrans = cube->translate;

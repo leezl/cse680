@@ -143,6 +143,7 @@ void Object::setProgram(Program * program) {
 void Object::setPhysics(std::string collisionType, std::string motionType, PhysicsWorld* world) {
     std::cout<<"Setting object Physics "<<std::endl;
     if (collisionType == "mesh") {
+        std::cout<<"MESH PHYSICS"<<std::endl;
         int indexStride = 3*sizeof(int);
         int vertStride = sizeof(btVector3);
         btVector3* gVertices = new btVector3[totalVerts];
@@ -159,9 +160,15 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
             //appends the indices to the end of our giant index array
             //add offset
             for (unsigned int j = 0; j<indices[i].size(); j++) {
+                if (indicesSoFar+j >= totalTriangles*3) {
+                    std::cout<<"Index range mesh error"<<std::endl;
+                }
                 gIndices[(indicesSoFar+j)] = indices[i][j]+(verticesSoFar);
             }
             for (unsigned int j = 0; j<vertices[i].size(); j++) {
+                if (verticesSoFar+j >= totalVerts) {
+                    std::cout<<"Vertex range mesh error"<<std::endl;
+                }
                 gVertices[(verticesSoFar+j)].setValue(vertices[i][j].x, vertices[i][j].y, vertices[i][j].z);
             }
             //add offset into gIndices
@@ -169,9 +176,8 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
             verticesSoFar += vertices[i].size();
         }
 
-        btTriangleIndexVertexArray* m_indexVertexArrays = new btTriangleIndexVertexArray(totalTriangles,
-            gIndices,
-            indexStride,
+        btTriangleIndexVertexArray* m_indexVertexArrays = new btTriangleIndexVertexArray(
+            totalTriangles, gIndices, indexStride,
             totalVerts, (btScalar*) &gVertices[0].x(), vertStride);
 
         btBvhTriangleMeshShape* trimeshShape  = new btBvhTriangleMeshShape(m_indexVertexArrays, true);
@@ -192,6 +198,13 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
         hull->buildHull(margin);
         btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(hull->getVertexPointer()[0],hull->numVertices());
         physics.objectShape = simplifiedConvexShape;
+    } else if (collisionType == "sphere") {
+        //match sphere type to shape (find center and any other vertex to get radius)
+        float radius = glm::distance(glm::vec3(center[0],center[1],center[2]) , vertices[0][0]); 
+        btSphereShape* sphere = new btSphereShape(radius);
+        physics.objectShape = sphere;
+    } else if (collisionType == "cube") {
+
     } else {
         //what other types do we want? default sphere? cube?
         btSphereShape* trimeshShape = new btSphereShape(1);
@@ -250,9 +263,9 @@ void Object::updateModel() {
         btVector3 trans = transform.getOrigin();
         btVector3 rotAxis = rots.getAxis();
         //this may be in the wrong order
-        model = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
-        model = glm::rotate(model, rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
+        model = glm::rotate(glm::mat4(1.0f), rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
         model = glm::translate(model, glm::vec3(trans.getX(), trans.getY(), trans.getZ()));
+        model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));
     } else if (physics.objectRigidBody !=NULL) {
         btTransform transform;
         physics.objectRigidBody->getMotionState()->getWorldTransform(transform);
@@ -260,9 +273,9 @@ void Object::updateModel() {
         btVector3 trans = transform.getOrigin();
         btVector3 rotAxis = rots.getAxis();
         //this may be in the wrong order
-        model = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
-        model = glm::rotate(model, rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
+        model = glm::rotate(glm::mat4(1.0f), rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
         model = glm::translate(model, glm::vec3(trans.getX(), trans.getY(), trans.getZ()));
+        model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));
 
         //physics.objectRigidBody->translate(btVector3(translate.x, translate.y, translate.z));
         dynamicWorld->dynamicsWorld->removeRigidBody(physics.objectRigidBody);
@@ -290,11 +303,11 @@ void Object::updateModel() {
         dynamicWorld->addRigidBody(physics.objectRigidBody);*/
 
     } else {
-        model = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
-        model = glm::rotate(model, rotate.x, glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0, 0.0, 0.0));
         model = glm::rotate(model, rotate.y, glm::vec3(0.0, 1.0, 0.0));
         model = glm::rotate(model, rotate.z, glm::vec3(0.0, 0.0, 1.0));
         model = glm::translate(model, glm::vec3(translate.x, translate.y, translate.z));
+        model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));
     }
 }
 
