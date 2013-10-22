@@ -201,7 +201,7 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
     physics.objectShape->setLocalScaling(btVector3(scale.x, scale.y, scale.z));
 
     //set motion
-    if (motionType == "ground") {
+    if (motionType == "ground" || motionType == "static") {
         btDefaultMotionState* motionState = new btDefaultMotionState(btTransform(btQuaternion(rotate.x, rotate.y, rotate.z,1),btVector3(translate.x,translate.y,translate.z)));
         physics.objectMotionState = motionState;
     } else {
@@ -214,9 +214,17 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
     if (motionType == "ground") {
         btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(0,physics.objectMotionState,physics.objectShape,btVector3(0,0,0));
         btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
+        //rigidBody->setCollisionFlags(rigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        //rigidBody->setActivationState(DISABLE_DEACTIVATION);
+        physics.objectRigidBody = rigidBody;
+        notStatic = true;
+    } else if (motionType == "static") {
+        btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(0,physics.objectMotionState,physics.objectShape,btVector3(0,0,0));
+        btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
         rigidBody->setCollisionFlags(rigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
         rigidBody->setActivationState(DISABLE_DEACTIVATION);
         physics.objectRigidBody = rigidBody;
+        notStatic = false;
     } else {
         btScalar mass = 1;
         btVector3 fallInertia(0,0,0);
@@ -224,6 +232,7 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
         btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, physics.objectMotionState, physics.objectShape, fallInertia);
         btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
         physics.objectRigidBody = rigidBody;
+        notStatic = true;
     }
 
     //add to dynamic World
@@ -234,7 +243,7 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
 void Object::updateModel() {
     //btTransform trans;
     //fallRigidBody->getMotionState()->getWorldTransform(trans);
-    if (physics.objectRigidBody !=NULL) {
+    if (physics.objectRigidBody !=NULL && notStatic) {
         btTransform transform;
         physics.objectRigidBody->getMotionState()->getWorldTransform(transform);
         btQuaternion rots = transform.getRotation();
@@ -244,6 +253,48 @@ void Object::updateModel() {
         model = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
         model = glm::rotate(model, rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
         model = glm::translate(model, glm::vec3(trans.getX(), trans.getY(), trans.getZ()));
+    } else if (physics.objectRigidBody !=NULL) {
+        btTransform transform;
+        physics.objectRigidBody->getMotionState()->getWorldTransform(transform);
+        btQuaternion rots = transform.getRotation();
+        btVector3 trans = transform.getOrigin();
+        btVector3 rotAxis = rots.getAxis();
+        //this may be in the wrong order
+        model = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
+        model = glm::rotate(model, rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
+        model = glm::translate(model, glm::vec3(trans.getX(), trans.getY(), trans.getZ()));
+
+        //physics.objectRigidBody->translate(btVector3(translate.x, translate.y, translate.z));
+        dynamicWorld->dynamicsWorld->removeRigidBody(physics.objectRigidBody);
+        //physics.objectRigidBody->applyCentralImpulse(btVector3(0.1,0.0,0.0));
+        btTransform tr;
+        //tr = physics.objectRigidBody->getWorldTransform();
+        //tr.setOrigin(btVector3(translate.x, translate.y, translate.z));
+        //tr.setRotation(btQuternion(......));
+        //physics.objectRigidBody->setWorldTransform(tr); 
+        physics.objectRigidBody->getMotionState()->getWorldTransform(tr);
+        tr.setOrigin(btVector3(translate.x, translate.y, translate.z));
+        //tr.setRotation(......);
+        physics.objectRigidBody->getMotionState()->setWorldTransform(tr);
+        dynamicWorld->dynamicsWorld->addRigidBody(physics.objectRigidBody);
+
+        //From Kinematic
+
+        //To Kinematic
+        /*dynamicWorld->removeRigidBody(physics.objectRigidBody);
+        physics.objectRigidBody->setMassProps(0, btVector3(0,0,0));
+        physics.objectRigidBody->setCollisionFlags(physics.objectRigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+        physics.objectRigidBody->setLinearVelocity(btVector3(0,0,0));
+        physics.objectRigidBody->setAngularVelocity(btVector3(0,0,0));
+        physics.objectRigidBody->setActivationState(DISABLE_DEACTIVATION);
+        dynamicWorld->addRigidBody(physics.objectRigidBody);*/
+
+    } else {
+        model = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
+        model = glm::rotate(model, rotate.x, glm::vec3(1.0, 0.0, 0.0));
+        model = glm::rotate(model, rotate.y, glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, rotate.z, glm::vec3(0.0, 0.0, 1.0));
+        model = glm::translate(model, glm::vec3(translate.x, translate.y, translate.z));
     }
 }
 
@@ -489,7 +540,9 @@ void Object::setTransforms(glm::vec3 trans, glm::vec3 rot, glm::vec3 sca, Physic
     scale = sca;
     if (world != NULL) {
         setPhysics(shape, moves, world);
+        dynamicWorld = world;
     } else {
+        dynamicWorld=NULL;
         physics.objectRigidBody=NULL;
         physics.objectShape=NULL;
         physics.objectMotionState=NULL;

@@ -70,13 +70,14 @@ class Object {
     int totalTriangles, totalVerts;
     void checkError(std::string where);
     bool loadAssImp(std::string dir, std::string path);
+    PhysicsWorld* dynamicWorld;
   public:
     glm::mat4 model;//this objects model
     glm::vec3 translate;
     glm::vec3 rotate;
     glm::vec3 scale;
     ObjectPhysics physics;
-    bool hasMaterials, hasTextures;//determine which shader to use
+    bool hasMaterials, hasTextures, notStatic;//determine which shader to use
     Object();
     Object(std::string path, std::string filename);
     ~Object();

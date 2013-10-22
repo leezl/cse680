@@ -36,6 +36,7 @@ Object *sphere=NULL;
 Object *cube=NULL;
 Object *sun=NULL;
 PhysicsWorld* dynamicWorld;
+glm::vec3 cubeTrans = glm::vec3(0.0,0.0,0.0);
 
 float rotationSpeed = 120.0;
 bool rotateFlag=false;
@@ -213,6 +214,7 @@ void update() {
     cube->updateModel();
     cylinder->updateModel();
     sphere->updateModel();
+    cube->translate = cubeTrans; //update user input
 
     //move sun 
     sun->model = glm::translate(glm::mat4(1.0f), glm::vec3(light.pos.x, light.pos.y, light.pos.z));
@@ -261,16 +263,20 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
        scaler +=0.1;
        break;
     case 'k'://1
-       lightposition.y -= 0.1;
+       //lightposition.y -= 0.1;
+       cubeTrans.z -= 0.1;
        break;
     case 'i'://2
-       lightposition.y +=0.1;
+       //lightposition.y +=0.1;
+        cubeTrans.z += 0.1;
        break;
     case 'j'://1
-       lightposition.x -= 0.1;
+       //lightposition.x -= 0.1;
+        cubeTrans.x -= 0.1;
        break;
     case 'l'://2
-       lightposition.x +=0.1;
+       //lightposition.x +=0.1;
+        cubeTrans.x += 0.1;
        break;
     default:
       break;
@@ -312,8 +318,10 @@ bool initialize() {
     //physics init
     board->setTransforms(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground", "mesh");
     cube->setTransforms(glm::vec3(0.0, 0.2, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "static", "convex");
-    sphere->setTransforms(glm::vec3(-1.0, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
-    cylinder->setTransforms(glm::vec3(0.0, 1.5, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
+    sphere->setTransforms(glm::vec3(-1.0, 5.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
+    cylinder->setTransforms(glm::vec3(0.0, 5.0, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
+    //decided to move the cube (pretending its a paddle)
+    cubeTrans = cube->translate;
 
     programShading = new Program(true, false, false);//normals, !color, !texture
     programTextures = new Program(true, false, true);//true);//normals, !color, texture (no blending)
