@@ -1,7 +1,15 @@
 Project 08: Bullet Physics
 ========================================
 This project is based on the previous Project, PA07. It will only work in linux with a recent cmake. Also it relies on several libraries (see below under Building This Example).   
-This project attempts to use cmake to create the Makefile. so in build, using:    
+This project attempts to use cmake to create the Makefile. However, Bullet has proven difficult to find. Even with a FindBULLET.cmake file, it needs to have three variable set in the CMakeLists.txt:   
+   set( BULLET_ROOT "/home/liesl/Projects/bullet-2.81-rev2613")   
+   set (BULLET_BUILD_DIR "/home/liesl/Projects/bullet-2.81-rev2613/bulletBuild")   
+   set (BULLET_SOURCE_DIR "/usr/include/bullet")   
+   
+The top two are paths to the bullet directory (ie. the extracted folder from the archive, and the second is a path into the build directory where cmake was run.) However, even this only worked if Bullet was built using: 
+   cmake .. -###############
+
+So in build, using:    
    cmake ..    
    make    
       

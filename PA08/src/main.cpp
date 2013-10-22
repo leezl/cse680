@@ -310,10 +310,10 @@ bool initialize() {
     sun->initializeObject();
 
     //physics init
-    board->setTransforms(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground");
-    cube->setTransforms(glm::vec3(0.5, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "ground");
-    sphere->setTransforms(glm::vec3(-1.0, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
-    cylinder->setTransforms(glm::vec3(0.0, 0.5, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic");
+    board->setTransforms(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground", "mesh");
+    cube->setTransforms(glm::vec3(0.0, 0.2, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "static", "convex");
+    sphere->setTransforms(glm::vec3(-1.0, 0.5, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
+    cylinder->setTransforms(glm::vec3(0.0, 1.5, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
 
     programShading = new Program(true, false, false);//normals, !color, !texture
     programTextures = new Program(true, false, true);//true);//normals, !color, texture (no blending)

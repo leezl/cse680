@@ -81,7 +81,7 @@ class Object {
     Object(std::string path, std::string filename);
     ~Object();
     void initializeObject();
-    void setTransforms(glm::vec3 trans, glm::vec3 rot, glm::vec3 sca, PhysicsWorld* world=NULL, std::string moves = "static");
+    void setTransforms(glm::vec3 trans, glm::vec3 rot, glm::vec3 sca, PhysicsWorld* world=NULL, std::string moves = "static", std::string shape="convex");
     void cleanUp();
     void drawObject();
     void flipNormals();

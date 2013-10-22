@@ -173,8 +173,25 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
             gIndices,
             indexStride,
             totalVerts, (btScalar*) &gVertices[0].x(), vertStride);
+
         btBvhTriangleMeshShape* trimeshShape  = new btBvhTriangleMeshShape(m_indexVertexArrays, true);
         physics.objectShape = trimeshShape;
+    } else if (collisionType == "convex") {
+        btConvexHullShape * m_indexVertexArrays = new btConvexHullShape();
+        //create bt arrays of vertices
+        //this is so slow...
+        for (unsigned int i = 0; i<vertices.size(); i++) {
+            for (unsigned int j = 0; j<vertices[i].size(); j++) {
+                m_indexVertexArrays->addPoint(btVector3(vertices[i][j].x, vertices[i][j].y, vertices[i][j].z));
+            }
+        }
+        //btConvexShape* originalConvexShape; is the original convexHullShape
+        //create a hull approximation
+        btShapeHull* hull = new btShapeHull(m_indexVertexArrays);
+        btScalar margin = m_indexVertexArrays->getMargin();
+        hull->buildHull(margin);
+        btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(hull->getVertexPointer()[0],hull->numVertices());
+        physics.objectShape = simplifiedConvexShape;
     } else {
         //what other types do we want? default sphere? cube?
         btSphereShape* trimeshShape = new btSphereShape(1);
@@ -197,6 +214,8 @@ void Object::setPhysics(std::string collisionType, std::string motionType, Physi
     if (motionType == "ground") {
         btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(0,physics.objectMotionState,physics.objectShape,btVector3(0,0,0));
         btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
+        rigidBody->setCollisionFlags(rigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        rigidBody->setActivationState(DISABLE_DEACTIVATION);
         physics.objectRigidBody = rigidBody;
     } else {
         btScalar mass = 1;
@@ -464,12 +483,12 @@ bool Object::loadAssImp(std::string dir, std::string path){
     return true;
 }
 
-void Object::setTransforms(glm::vec3 trans, glm::vec3 rot, glm::vec3 sca, PhysicsWorld* world, std::string moves) {
+void Object::setTransforms(glm::vec3 trans, glm::vec3 rot, glm::vec3 sca, PhysicsWorld* world, std::string moves, std::string shape) {
     translate = trans;
     rotate =rot;
     scale = sca;
     if (world != NULL) {
-        setPhysics(std::string("mesh"), moves, world);
+        setPhysics(shape, moves, world);
     } else {
         physics.objectRigidBody=NULL;
         physics.objectShape=NULL;

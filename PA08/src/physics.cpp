@@ -17,8 +17,10 @@ PhysicsWorld::PhysicsWorld() {
 void PhysicsWorld::addRigidBodyObject(btRigidBody* object) {
 	if (object != NULL) {
 		dynamicsWorld->addRigidBody(object);
+		std::cout<<"ADDED RIGID BODY"<<std::endl;
 	} else {
 		std::cerr<<"Why was that rigidBody pointer NULL?"<<std::endl;
+		exit(EXIT_FAILURE);
 	}
 }
 
