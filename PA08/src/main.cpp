@@ -266,11 +266,11 @@ void keyboard(unsigned char key, int x_pos, int y_pos) {
        break;
     case 'k'://1
        //lightposition.y -= 0.1;
-       cubeTrans.z -= 0.1;
+       cubeTrans.z += 0.1;
        break;
     case 'i'://2
        //lightposition.y +=0.1;
-        cubeTrans.z += 0.1;
+        cubeTrans.z -= 0.1;
        break;
     case 'j'://1
        //lightposition.x -= 0.1;
