@@ -35,24 +35,24 @@ include_directories(${PA_SOURCE_DIR}/src)
 
 #only object needs Assimp
 set(CORELIBS 
-	${GLUT_LIBRARY} 
-	${GLEW_LIBRARY} 
-	${OPENGL_LIBRARY} 
-	${ASSIMP_LIBRARIES} 
-	${IL_LIBRARIES} 
-	${ILU_LIBRARIES}
-	#${ILUT_LIBRARIES}
-	${BULLET_BulletDynamics_LIBRARY}
-	${BULLET_BulletCollision_LIBRARY}
-	${BULLET_LinearMath_LIBRARY}
-	#${BULLET_LIBRARIES}
-	#${BULLET_SoftBody_LIBRARY}
-	#${BULLET_BulletDynamics_LIBRARY}
-	#${BULLET_BulletCollision_LIBRARY}
-	#${BULLET_LinearMath_LIBRARY}
-	)
-	#	#${ILUT_LIBRARIES}
-	#${BULLET_LIBRARIES}
+        ${GLUT_LIBRARY} 
+        ${GLEW_LIBRARY} 
+        ${OPENGL_LIBRARY} 
+        ${ASSIMP_LIBRARIES} 
+        ${IL_LIBRARIES} 
+        ${ILU_LIBRARIES}
+        #${ILUT_LIBRARIES}
+        ${BULLET_BulletDynamics_LIBRARY}
+        ${BULLET_BulletCollision_LIBRARY}
+        ${BULLET_LinearMath_LIBRARY}
+        #${BULLET_LIBRARIES}
+        #${BULLET_SoftBody_LIBRARY}
+        #${BULLET_BulletDynamics_LIBRARY}
+        #${BULLET_BulletCollision_LIBRARY}
+        #${BULLET_LinearMath_LIBRARY}
+        )
+        #        #${ILUT_LIBRARIES}
+        #${BULLET_LIBRARIES}
 
 #message("oh ", ${CORELIBS})
 
@@ -64,12 +64,12 @@ set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")
 #set(LIBS ${LIBS} ${LibXML++_LIBRARIES})
 
 set(SOURCES 
-	${PA_SOURCE_DIR}/src/main.cpp 
-	${PA_SOURCE_DIR}/src/shader.cpp 
-	${PA_SOURCE_DIR}/src/object.cpp
-	${PA_SOURCE_DIR}/src/program.cpp
-	${PA_SOURCE_DIR}/src/texture.cpp
-	${PA_SOURCE_DIR}/src/physics.cpp)
+        ${PA_SOURCE_DIR}/src/main.cpp 
+        ${PA_SOURCE_DIR}/src/shader.cpp 
+        ${PA_SOURCE_DIR}/src/object.cpp
+        ${PA_SOURCE_DIR}/src/program.cpp
+        ${PA_SOURCE_DIR}/src/texture.cpp
+        ${PA_SOURCE_DIR}/src/physics.cpp)
 
 add_executable(pa ${SOURCES})
 
