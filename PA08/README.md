@@ -1,5 +1,7 @@
 Project 08: Bullet Physics
 ========================================
+Group: Khoa Tran, and Liesl Wigand
+
 This project is based on the previous Project, PA07. It will only work in linux with a recent cmake. Also it relies on several libraries (see below under Building This Example).   
 This project attempts to use cmake to create the Makefile. However, Bullet has proven difficult to find. Even with a FindBULLET.cmake file, it needs to have three variable set in the CMakeLists.txt:   
    set( BULLET_ROOT "/home/liesl/Projects/bullet-2.81-rev2613")   
@@ -7,35 +9,27 @@ This project attempts to use cmake to create the Makefile. However, Bullet has p
    set (BULLET_SOURCE_DIR "/usr/include/bullet")   
    
 The top two are paths to the bullet directory (ie. the extracted folder from the archive, and the second is a path into the build directory where cmake was run.) However, even this only worked if Bullet was built using: 
-   cmake .. -###############
+   cmake .. -DINSTALL_LIBS=on -DBUILD_SHARED_LIBS=on
 
 So in build, using:    
    cmake ..    
    make    
       
 Should result in the creation of the executable in the bin directory. See additional build help below.    
-
-Assumes all textures are down the same path as the objects, and their materials (if they exist).
-There may still be a sun.obj in the model directory, since I like drawing soemthing around the light 
-but I didn't want it to be a hard-coded cube.
    
-CONTROLS:     
-Space: starts/stops spinning of object    
-a, d: change speed of spinning object    
+CONTROLS: 
 left arrow: camera gets closer to object    
 right arrow: camera gets farther from object    
 up arrow: raises camera    
 down arrow: lower camera    
-s: scale object down    
-S: scales object up
-i,k : move the light up and down    
-j,l : move the light left and right       
+i,k : move the cube up and down    
+j,l : move the cube left and right       
     
 The assigned alterations are to add the following:    
 1.) Use Bullet Physics.   
 2.) Have a cylinder, sphere, and cube on a board.   
 3.) Have the cube and board be static, and the cylinder and sphere be dynamic.   
-    
+4.) Use btTriangleMeshes to load the collision objects? Extra Credit/ Graduate Credit.
 
     
 The following is still true:    
@@ -43,7 +37,7 @@ The following is still true:
 Building This Example    
 ---------------------    
     
-*This example requires GLM, glew, glut and devil. Also Assimp 3.0, sudo make installed from the src download.*    
+*This example requires GLM, glew, glut and devil. Also Assimp 3.0, sudo make installed from the src download. Bullet Physics should also be installed.*    
 *On ubuntu it can be installed with this command*    
     
    >$ sudo apt-get install freeglut3-dev freeglut3 libglew1.6-dev    
