@@ -1,6 +1,7 @@
 Project 08: Bullet Physics
 ========================================
 Group: Khoa Tran, and Liesl Wigand
+NOTE: We both have full working copies in our repositories this time around.
 
 This project is based on the previous Project, PA07. It will only work in linux with a recent cmake. Also it relies on several libraries (see below under Building This Example).   
 This project attempts to use cmake to create the Makefile. However, Bullet has proven difficult to find. Even with a FindBULLET.cmake file, it needs to have three variable set in the CMakeLists.txt:   
