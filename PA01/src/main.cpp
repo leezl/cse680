@@ -411,7 +411,7 @@ char* loadShader(char* filename)
     shaderfile.seekg(0, shaderfile.beg);
 
     //create new char of the length
-    shadercode = new char[length];
+    shadercode = new char[length+1];
 
     int i = 0;
     //load shader into car
