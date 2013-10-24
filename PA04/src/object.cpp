@@ -85,7 +85,7 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
         if (res == EOF) {
             break; // EOF = End Of File. Quit the loop.
         }
- 
+	std::cout<<lineHeader<<std::endl;
         // else : parse lineHeader
         if ( strcmp( lineHeader, "v" ) == 0 ){
             glm::vec3 vertex;
@@ -101,19 +101,21 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                 } 
             }
         } else if ( strcmp( lineHeader, "vt" ) == 0 ){
-            if (loadUV==true) {
+	  if (loadUV==true) {
                 glm::vec2 uv;
                 fscanf(file, "%f %f\n", &uv.x, &uv.y );
                 temp_uvs.push_back(uv);
                 hasTex = true;
-            }
+		}
+	    hasTex = true;
         } else if ( strcmp( lineHeader, "vn" ) == 0 ){
-            if (loadNorm==true) {
+	  if (loadNorm==true) {
                 glm::vec3 normal;
                 fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
                 temp_normals.push_back(normal);
                 hasNorm = true;
-            }
+		}
+	    hasNorm = true;
         } else if ( strcmp( lineHeader, "mtllib" ) == 0){
             char tempMaterial[128];
             // Store mtl file name for loading at end of this
@@ -126,6 +128,7 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
             fscanf(file, "%s\n", &tempMaterial);//if no mtl? try this later
             matName = tempMaterial;
         } else if ( strcmp( lineHeader, "f" ) == 0 ){
+	  std::cout<<"faces: "<<hasVert<<' '<<hasNorm<<' '<<hasTex<<std::endl;
             //have all vertices, grab center here
             center[0] = (max[0]+min[0])/2.0;
             center[1] = (max[1]+min[1])/2.0;
@@ -142,16 +145,18 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                     vertexIndTemp.push_back(vertexIndex[0]);
                     uvIndTemp.push_back(uvIndex[0]);
                     normalIndTemp.push_back(normalIndex[0]);
-                    matches = fscanf(file, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0]);
+		    matches = fscanf(file, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0]);
                 }
             } else if (hasVert && hasNorm) {
                 //generalize fscanf to read in arbitrary number of points
+	      std::cout<<"attempting to match %d//%d"<<std::endl;
                 int matches = fscanf(file, "%d//%d", &vertexIndex[0], &normalIndex[0]);
                 while ( matches > 0 ) {
+		  std::cout<<"%d//%d match"<<std::endl;
                     //store all the points found
                     vertexIndTemp.push_back(vertexIndex[0]);
                     uvIndTemp.push_back(-1);
-                    normalIndTemp.push_back(normalIndex[0]);
+		    normalIndTemp.push_back(normalIndex[0]);
                     matches = fscanf(file, "%d//%d", &vertexIndex[0], &normalIndex[0]);
                 }
             } else if (hasVert && hasTex) {
@@ -160,7 +165,7 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                 while ( matches > 0 ) {
                     //store all the points found
                     vertexIndTemp.push_back(vertexIndex[0]);
-                    uvIndTemp.push_back(uvIndex[0]);
+		    uvIndTemp.push_back(uvIndex[0]);
                     normalIndTemp.push_back(-1);
                     matches = fscanf(file, "%d/%d/", &vertexIndex[0], &uvIndex[0]);
                 }
@@ -175,6 +180,8 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                 }
             }
             //triangulate points into faces
+	    //if (loadNorm == false) {hasNorm=false;}
+	    //if (loadUV == false) {hasTex=false;}
             assert ( vertexIndTemp.size()>=3 );
             vertexIndex[0] = vertexIndTemp[0];
             uvIndex[0] = uvIndTemp[0];
@@ -206,10 +213,10 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                             //add new values to all arrays
                             uniqueInd.push_back(indexPoint);
                             vertices.push_back(temp_vertices[vertexIndex[j]-1]);
-                            if (hasTex) {
+                            if (loadUV) {
                                 uvs.push_back(temp_uvs[uvIndex[j]-1]);
                             }
-                            if (hasNorm) {
+                            if (loadNorm) {
                                 normals.push_back(temp_normals[normalIndex[j]-1]);
                             }
                             //find correct color value later, for now store color name
@@ -226,10 +233,10 @@ bool Object::loadObjectElementsColor(std::string path, std::string filename){
                     } else {//vertex 0 1 and 2 
                         //just add vertice and indices
                         vertices.push_back(temp_vertices[vertexIndex[j]-1]);
-                        if (hasTex) {
+                        if (loadUV) {
                             uvs.push_back(temp_uvs[uvIndex[j]-1]);
                         }
-                        if (hasNorm) {
+                        if (loadNorm) {
                             normals.push_back(temp_normals[normalIndex[j]-1]);
                         }
                         //find correct color value later, for now store color name
