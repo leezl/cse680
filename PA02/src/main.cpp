@@ -153,7 +153,7 @@ void render() {
 
     //glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-    std::cout<<"Uses drawElements "<<elementSize<<std::endl;
+    //std::cout<<"Uses drawElements "<<elementSize<<std::endl;
     // Draw the triangles !
     glDrawElements(
         GL_TRIANGLES,      // mode
