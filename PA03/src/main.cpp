@@ -144,14 +144,14 @@ void render() {
                           3,  // number of elements
                           GL_FLOAT,  // type
                           GL_FALSE,  // normalized?
-                          sizeof(glm::vertex3),  // stride
+                          sizeof(glm::vec3),  // stride
                           0);  // offset
 
     glVertexAttribPointer(loc_color,
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          sizeof(glm::vertex3),
+                          sizeof(glm::vec3),
                           0);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);  // mode, starting index, count
