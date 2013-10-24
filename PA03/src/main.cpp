@@ -223,25 +223,23 @@ void update() {
     }
     rotAngleMoon += dt * rotationSpeed;
 
-    modelP = glm::scale(glm::mat4(1.0f), glm::vec3(0.75f, 0.75f, 0.75f));
-    modelP = glm::translate(modelP,
+    modelP = glm::translate(glm::mat4(1.0f),
                             glm::vec3(4.25 * sin(angle),
                                       0.0, 4.25 * cos(angle)));
     // The following should: rotate about z axis
     // Where params are: (initial matrix, angle, axis)
     modelP = glm::rotate(modelP, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-
+    modelP = glm::scale(modelP, glm::vec3(0.75f, 0.75f, 0.75f));
 
     //move moon too
-    modelM = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f, 0.4f, 0.4f));
-    modelM = glm::translate(modelM,
+    modelM = glm::translate(glm::mat4(1.0f),
                             glm::vec3(4.25 * sin(angle),
                                       0.0, 4.25 * cos(angle)));
     modelM = glm::translate(modelM,
                             glm::vec3(2.0 * sin(angleMoon),
 				      0.0, 2.0 * cos(angleMoon)));
     modelM = glm::rotate(modelM, rotAngleMoon, glm::vec3(0.0f, 1.0f, 0.0f));
-
+    modelM = glm::scale(modelM, glm::vec3(0.4f, 0.4f, 0.4f));
 
     // Update the state of the scene
     glutPostRedisplay();  // call the display callback
