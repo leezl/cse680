@@ -17,6 +17,7 @@ Program class: meant to store a given program and its enabled features
 #define PROGRAM_H_
 
 struct Light {
+    std::string type;
     glm::vec4 pos;
     glm::vec4 amb;
     glm::vec4 diff;
@@ -25,6 +26,7 @@ struct Light {
     float spotCutoff, spotExp;
     glm::vec4 spotDir;
     bool on;
+    bool inactive;
 
     Light & operator=(Light other) {
         pos = other.pos;
@@ -38,6 +40,8 @@ struct Light {
         spotCutoff = other.spotCutoff;
         spotExp = other.spotExp;
         on = other.on;
+        inactive = other.inactive;
+        type = other.type;
         return *this;
     }
     Light () {
@@ -50,7 +54,69 @@ struct Light {
         linearAtten = quadraticAtten = 0.0;
         spotCutoff = 360.0;
         spotExp = 0.0;
-        on = true;
+        on = false;
+        inactive = true;
+        type = "Unset";
+    }
+    Light (std::string types) {
+        if(types == "off") {
+            pos = glm::vec4(0.0,0.0,0.0,0.0);
+            amb = glm::vec4(0.0,0.0,0.0,0.0);
+            diff = glm::vec4(0.0,0.0,0.0,0.0);
+            spec = glm::vec4(0.0,0.0,0.0,0.0);
+            spotDir = glm::vec4(0.0,0.0,0.0,0.0);
+            constantAtten = 1.0;
+            linearAtten = quadraticAtten = 0.0;
+            spotCutoff = 360.0;
+            spotExp = 0.0;
+            on = false;
+        } else if (types == "point") {
+            pos = glm::vec4(0.0f, 0.0f, 0.0, 1.0f);
+            amb = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            diff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            spec = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            spotDir = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+            constantAtten = 1.0;
+            linearAtten = quadraticAtten = 0.0;
+            spotCutoff = 180.0;
+            spotExp = 0.0;
+            on = true;
+        } else if (types == "spot") {
+            pos = glm::vec4(0.0f, 1.0f, 0.0, 1.0f);
+            amb = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            diff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            spec = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            spotDir = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
+            constantAtten = 1.0;
+            linearAtten = quadraticAtten = 0.0;
+            spotCutoff = 90.0;
+            spotExp = 10.0;
+            on = true;
+        } else if (types == "ambient") {
+            pos = glm::vec4(0.0f, 0.0f, 0.0, 1.0f);
+            amb = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            diff = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            spec = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            spotDir = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+            constantAtten = 1.0;
+            linearAtten = quadraticAtten = 0.0;
+            spotCutoff = 180.0;
+            spotExp = 0.0;
+            on = true;
+        } else {
+            pos = glm::vec4(0.0f, 0.0f, 0.0, 0.0f);
+            amb = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            diff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            spec = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            spotDir = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+            constantAtten = 1.0;
+            linearAtten = quadraticAtten = 0.0;
+            spotCutoff = 180.0;
+            spotExp = 0.0;
+            on = true;
+        }
+        inactive = false;
+        type = types;
     }
     Light (const Light& other) {
         pos = other.pos;
@@ -64,6 +130,8 @@ struct Light {
         spotCutoff = other.spotCutoff;
         spotExp = other.spotExp;
         on = other.on;
+        inactive = other.inactive;
+        type = other.type;
     }
 };
 
@@ -104,8 +172,8 @@ public:
     GLint loc_tex;
     GLint loc_timat;
     Light offLight;
-	Light* lights[4];
-    LightPos lightPos[4];
+	Light* lights[8];
+    LightPos lightPos[8];
     MaterialPos materialPosition;
 	glm::mat4 * view;
 	glm::mat4 * projection;

@@ -14,24 +14,54 @@ Objective:
 *  Create Point Light
 *  Create Distant Light
 *  Create Spot Light
+   
+Description:   
+----------------------------   
+There are spheres drawn for each of the lights, which have their normals flipped. This is so they show the lights inside them best, but it makes their shading look wrong. Ambient Lights do not have spheres drawn.  
+Initially:
+1 Point Light On and Active
+2 Ambient Light on 
+3 Spot Light on
+4 Distant Light on
 
-Controls:
----------------------------------
+When first loaded the Point Light tied to 1 is active, so it will move with wasdWS. Each of 8 possible lights can be turned off and on with their numbers: 1,2,3,4 are on at the start. More controls are below.
+   
+Controls:   
+---------------------------------   
   
-* left arrow: camera gets closer to object    
-* right arrow: camera gets farther from object    
+* left arrow: camera gets closer to center    
+* right arrow: camera gets farther from center    
 * up arrow: raises camera    
-* down arrow: lower camera    
-* 1 Turns the Point Light on and off
-* 2 Turns the Ambient Light on and off
-* 3 Turns the Spot Light on and off
-* 4 Turns the DIstant Light on and off
-* i, k, J, L, I, K control the Point Light    
-* j,l control the paddle left and right    
-* a,s,d,w control the spot Light direction ........    
-* A,S,D,W control the Spot parameters ........    
-* ESC to close program     
+* down arrow: lower camera   
+* i,j,k,l control the blue paddle still  
+	-> i forward
+	-> j left 
+	-> k backward
+	-> l right
+* ESC to close program    
+   
+* 1 Turns the Point Light on and off   
+* 2 Turns the Ambient Light on and off  
+* 3 Turns the Spot Light on and off  
+* 4 Turns the Distant Light on and off   
+* Other number up to 8 turn off and on added SpotLights   
 
+* Add more Spot Lights with '+' key   
+* Swap the Active Light with the space bar   
+The Following Controls the active Light:    
+* a,s,d,w,W,S control the Light position   
+	-> w forward   
+	-> a left   
+	-> s backward   
+	-> d right   
+	-> W up   
+	-> S down  
+*  If the light is a spot light: (Here's where things get pointlessly complicated)   
+	-> A,D control spotlight cutoff angle   
+	-> q,e control the x spotlight direction   
+	-> z,c control the z spotlight direction   
+	-> Q,E control the spotlight exponent
+   
 
 Program Libraries Requirements
 ------------------------------------------------    

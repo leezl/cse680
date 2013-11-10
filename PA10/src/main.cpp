@@ -85,6 +85,7 @@ bool disableColor=true, disableTextures=false, aiEnabled=false;
 glm::mat4 view;  // world->eye
 glm::mat4 projection;  // eye->clip
 std::vector < Light > lights;
+int activeLight = 0; //use this to switch which light is controled by wasd...
 
 void createMenu();
 // --GLUT Callbacks
@@ -102,6 +103,8 @@ void mouseMove(int x, int y);	//Mouse Cursor Control
 void createMenu();
 void menuSub(int id);
 void menu(int id);			//Menu 
+void addLight();
+void switchActiveLight();
 //void displayStatus(float x, float y, float z, char *string);	//Status 
 //---------------------------------------------------------------
 
@@ -233,23 +236,46 @@ void render() {
     board->drawObject();
     sphere->drawObject();
 
-    sun->drawObject();
+    //sun->drawObject();
 	paddle1->drawObject();
+
+    //draw other lights: set sun position: drawObject, repeat...
+    for (int i =0; i<8; i++) {
+        //std::cout<<"Drawing  "<<i<<' '<<lights[i].type<<" what?"<<std::endl;
+        if (lights[i].inactive == false && lights[i].type!="ambient") {
+            sun->model = glm::translate(glm::mat4(1.0f), glm::vec3(lights[i].pos.x, lights[i].pos.y, lights[i].pos.z));
+            sun->model = glm::scale(sun->model, glm::vec3(0.60, 0.60, 0.60));
+            sun->drawObject();
+        }
+    }
 
     //draw some light parameters on the screen
     //print spotlight direction
     std::stringstream ss;//create a stringstream
-    ss << lights[2].spotDir.x;
-    ss << ',';
-    ss << lights[2].spotDir.y;
-    ss << ',';
-    ss << lights[2].spotDir.z;
+    ss << activeLight;
+    ss << ' ';
+    ss << lights[activeLight].type;
     //std::cout<<GLUT_WINDOW_HEIGHT<<','<<GLUT_WINDOW_WIDTH<<' '<<w<<','<<h<<std::endl;
-    const char *spotDirection = ("SpotDirection: "+ss.str()).c_str();
-    int lenghOfString = (int)strlen(spotDirection);
-    glRasterPos2f(0.0, h+10.0);
+    const char *activeLights = ("Active Light: "+ss.str()).c_str();
+    int lenghOfString = (int)strlen(activeLights);
+    glRasterPos2f(0.0-0.98, 0.0+0.98);//10.0);
     for ( int i = 0; i < lenghOfString; i++ ) {
-        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, spotDirection[i]);
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, activeLights[i]);
+    }
+    //print spotlight direction
+    if (lights[activeLight].type=="spot") {
+        ss << lights[2].spotDir.x;
+        ss << ',';
+        ss << lights[2].spotDir.y;
+        ss << ',';
+        ss << lights[2].spotDir.z;
+        //std::cout<<GLUT_WINDOW_HEIGHT<<','<<GLUT_WINDOW_WIDTH<<' '<<w<<','<<h<<std::endl;
+        const char *spotDirection = ("SpotDirection: "+ss.str()).c_str();
+        lenghOfString = (int)strlen(spotDirection);
+        glRasterPos2f(0.0-90.0, 0.0+90.0);
+        for ( int i = 0; i < lenghOfString; i++ ) {
+            glutBitmapCharacter(GLUT_BITMAP_9_BY_15, spotDirection[i]);
+        }
     }
     
     // swap the buffers
@@ -278,10 +304,6 @@ void update() {
         paddle1->nextTranslate = paddle1Trans; //update user input
         paddle1->updateModel();
         paddle1Trans = paddle1->nextTranslate;
-
-		//move sun (point light)
-		sun->model = glm::translate(glm::mat4(1.0f), glm::vec3(lights[0].pos.x, lights[0].pos.y, lights[0].pos.z));
-		sun->model = glm::scale(sun->model, glm::vec3(0.60, 0.60, 0.60));
 
         //add cone for spot light?
 
@@ -315,6 +337,43 @@ void keyDown (unsigned char key, int x, int y) {
 void keyUp (unsigned char key, int x, int y) {
     keyStates[key] = false; // Set the state of the current key to not pressed
 }
+
+void switchActiveLight() {
+    std::cout<<"Active Light: "<<activeLight<<std::endl;
+    activeLight++;
+    if (activeLight<8) {
+        if (lights[activeLight].inactive == true) {
+            activeLight = 0;
+        }
+    } else {
+        activeLight=0;
+    }
+}
+
+void addLight() {
+    int i = 4;
+    bool notExit = true;
+    while (i<8 && notExit) {
+        if (lights[i].inactive == true) {
+            lights[i].type = "spot";
+            lights[i].inactive = false;
+            lights[i].on = true;
+            lights[i].pos = glm::vec4(0.0, 2.0, 0.0, 1.0f); //note 1.0 makes directional
+            lights[i].amb = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            lights[i].diff = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
+            lights[i].spec = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
+            lights[i].spotDir = glm::vec4(glm::vec4(0.0,0.0,0.0,1.0)-lights[i].pos);
+            lights[i].constantAtten = 1.0;
+            lights[i].linearAtten = 1.0;
+            lights[i].quadraticAtten = 0.0;
+            lights[i].spotCutoff = 45.0;
+            lights[i].spotExp = 5.0;
+            activeLight = i;
+            notExit = false;
+        }
+        i++;
+    }
+}
 //act on key up or down
 //should we call this in render or update? tutorial had it in render...
 void keyOperations (void) {
@@ -322,87 +381,104 @@ void keyOperations (void) {
         // ESC
         exit(0);
     }
-    //spotLight controls
-    if (keyStates['w']) {//1
-       //lightposition.y -= 0.1;
-       lights[2].pos.z += 0.1;
+    if (keyStates['+']) {
+        //add a spot light until 8 full lights
+        addLight();
+        keyStates['+']=false;
     }
-    if (keyStates['s']) {//2
-       //lightposition.y +=0.1;
-        lights[2].pos.z -= 0.1;
+    //swap Active Light
+    if (keyStates[' ']) {
+        switchActiveLight();
+        keyStates[' '] = false;
     }
-    if (keyStates['W']) {//1
-        lights[2].pos.y -= 0.1;
+    //Light controls
+    if (keyStates['w']) {
+       lights[activeLight].pos.z += 0.1;
     }
-    if (keyStates['S']) {//2
-        lights[2].pos.y +=0.1;
+    if (keyStates['s']) {
+        lights[activeLight].pos.z -= 0.1;
     }
-    if (keyStates['a']) {//1
-       //lightposition.x -= 0.1;
-        lights[2].pos.x -= 0.1;
+    if (keyStates['a']) {
+        lights[activeLight].pos.x -= 0.1;
     }
-    if (keyStates['d']) {//2
-       //lightposition.x +=0.1;
-        lights[2].pos.x += 0.1;
+    if (keyStates['d']) {
+        lights[activeLight].pos.x += 0.1;
+    }
+    if (keyStates['W']) {
+        lights[activeLight].pos.y += 0.1;
+    }
+    if (keyStates['S']) {
+        lights[activeLight].pos.y -=0.1;
     }
     if (keyStates['A']) {
-        lights[2].spotCutoff -= 5.0;
+        if (lights[activeLight].type=="spot" && lights[activeLight].spotCutoff>0) {
+            lights[activeLight].spotCutoff -= 5.0;
+        }
         keyStates['A'] = false;
     }
     if (keyStates['D']) {
-        lights[2].spotCutoff += 5.0;
+        if (lights[activeLight].type=="spot" && lights[activeLight].spotCutoff<90) {//chekc this limit?
+            lights[activeLight].spotCutoff += 5.0;
+        }
         keyStates['D'] = false;
     }
     if (keyStates['q']) {
-        lights[2].spotDir.x -= 0.5;
+        if (lights[activeLight].type=="spot") {
+            lights[activeLight].spotDir.x -= 0.5;
+        }
         keyStates['q'] = false;
     }
     if (keyStates['e']) {
-        lights[2].spotDir.x += 0.5;
+        if (lights[activeLight].type=="spot") {
+            lights[activeLight].spotDir.x += 0.5;
+        }
         keyStates['e'] = false;
     }
     if (keyStates['z']) {
-        lights[2].spotDir.z += 0.5;
+        if (lights[activeLight].type=="spot") {
+            lights[activeLight].spotDir.z += 0.5;
+        }
         keyStates['z'] = false;
     }
     if (keyStates['c']) {
-        lights[2].spotDir.z -= 0.5;
+        if (lights[activeLight].type=="spot") {
+            lights[activeLight].spotDir.z -= 0.5;
+        }
         keyStates['c'] = false;
     }
     if (keyStates['x']) {
-        lights[2].spotDir.y = -lights[2].spotDir.y;
+        if (lights[activeLight].type=="spot") {
+            //this needs to change
+            lights[activeLight].spotDir.y = -lights[activeLight].spotDir.y;
+        }
         keyStates['x'] = false;
+    }
+    if (keyStates['Q']) {
+        if (lights[activeLight].type=="spot") {
+            lights[activeLight].spotExp -= 1.0;
+        }
+        keyStates['Q'] = false;
+    }
+    if (keyStates['E']) {
+        if (lights[activeLight].type=="spot") {
+            lights[activeLight].spotExp += 1.0;
+        }
+        keyStates['E'] = false;
     }
     //paddle1
     if (keyStates['k']) {//1
-       //lightposition.y -= 0.1;
-       lights[0].pos.z += 0.1;
+       paddle1Trans.z += 0.1;
     }
     if (keyStates['i']) {//2
-       //lightposition.y +=0.1;
-        lights[0].pos.z -= 0.1;
-    }
-    if (keyStates['K']) {//1
-        lights[0].pos.y -= 0.1;
-    }
-    if (keyStates['I']) {//2
-        lights[0].pos.y +=0.1;
+        paddle1Trans.z -= 0.1;
     }
     if (keyStates['j']) {//1
-       //lightposition.x -= 0.1;
         paddle1Trans.x -= 0.1;
     }
     if (keyStates['l']) {//2
-       //lightposition.x +=0.1;
         paddle1Trans.x += 0.1;
     }
-    if (keyStates['J']) {//1
-        lights[0].pos.x -= 0.1;
-    }
-    if (keyStates['L']) {//2
-        lights[0].pos.x +=0.1;
-    }
-    //Each Hit for following should count only once: set to false after this update
+    //Lights on or off
     if (keyStates['1']) {//2
         //point
         lights[0].on = !lights[0].on;
@@ -560,35 +636,49 @@ bool initialize() {
     //glm::vec3 min = glm::vec3(board->getCurrentMin());//glm::vec3(board->min.x, board->min.y, board->min.z);
 
     //Create Lights
-    lights.push_back(Light());
+    lights.push_back(Light("point"));
     //Add a default light; assume single light for now
     //A point Light
     lights[0].pos = glm::vec4(0.0f, 1.0f, 0.0, 1.0f);
     lights[0].amb = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     lights[0].diff = glm::vec4(0.0f, 0.8f, 1.0f, 1.0f);
     lights[0].spec = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+    lights[0].inactive=false;
+    lights[0].on = true;
     //An Ambient Light
-    lights.push_back(Light());
+    lights.push_back(Light("ambient"));
     lights[1].pos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     lights[1].amb = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
+    lights[1].on = true;
+    lights[1].inactive=false;
     //A Spot Light
-    lights.push_back(Light());
+    lights.push_back(Light("spot"));
     lights[2].pos = glm::vec4(0.0, 2.0, 0.0, 1.0f); //note 1.0 makes directional
     lights[2].amb = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    lights[2].diff = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    lights[2].spec = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    lights[2].diff = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
+    lights[2].spec = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
     lights[2].spotDir = glm::vec4(glm::vec4(0.0,0.0,0.0,1.0)-lights[2].pos);
-    lights[2].constantAtten = 1.0;
-    lights[2].linearAtten = 1.0;
-    lights[2].quadraticAtten = 0.0;
-    lights[2].spotCutoff = 88.0;
-    lights[2].spotExp = 20.0;
+    lights[2].constantAtten = 1.5;
+    lights[2].linearAtten = 0.5;
+    lights[2].quadraticAtten = 0.2;
+    lights[2].spotCutoff = 45.0;
+    lights[2].spotExp = 2.0;
+    lights[2].on = true;
+    lights[2].inactive=false;
     //A Distant Light
-    lights.push_back(Light());
+    lights.push_back(Light("distant"));
     lights[3].pos = glm::vec4(0.0f, 10.0f, 0.0f, 0.0f);
     lights[3].amb = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     lights[3].diff = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
     lights[3].spec = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    lights[3].on = true;
+    lights[3].inactive=false;
+
+    //default other lights: off
+    lights.push_back(Light());//5 //4
+    lights.push_back(Light());//6  //5
+    lights.push_back(Light());//7  //6
+    lights.push_back(Light());//8: Max Lights //7
 
     //std::cout<<"Light First: "<<light.pos[0]<<' '<<light.pos[1]<<' '<<light.pos[2]<<std::endl;
 
@@ -606,7 +696,7 @@ bool initialize() {
 
     //update lights in program here, since we move them...
     //hmm: so...need to change Program and Light struct
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<lights.size(); i++) {
         programShading->addLight(lights[i], i);
         programTextures->addLight(lights[i], i);
     }

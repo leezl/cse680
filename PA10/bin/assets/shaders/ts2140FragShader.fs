@@ -26,11 +26,11 @@ struct Light {
 };
 
 uniform sampler2D textSamp;
-uniform Light lights[4];
+uniform Light lights[8];
 uniform Material material;
 
 void main(void){
-    vec4 color[4];
+    vec4 color[8];
     vec4 ambient, diffuse, specular;
     vec4 runColor = vec4(0.0,0.0,0.0,1.0);
     vec4 lightDirection;
@@ -38,7 +38,7 @@ void main(void){
     vec4 H;
     float attenuation=1.0;
 
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<8; i++) {
         //set parameters for point spot and distant light...
         if(0.0 == lights[i].position.w) { //did I swap this?
             attenuation = 1.0; // no attenuation
@@ -83,7 +83,7 @@ void main(void){
     }
 
     //calculate lighting for color before
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<8; i++) {
         runColor = (0.5*color[i]) + runColor;
     }
 

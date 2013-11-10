@@ -192,7 +192,7 @@ bool Program::loadLocations() {
     }
 
 	//load other locations...have defaults if don't exist
-    for(int i=0; i<4; i++) {
+    for(int i=0; i<8; i++) {
         //Light Position
         std::cout<<"lights["<<convertInt(i)<<"].position "<<std::endl;
         lightPos[i].locs[0] = glGetUniformLocation(program,
@@ -381,7 +381,7 @@ bool Program::setTextureSampler(GLuint * texI) {
 }
 
 bool Program::setLights() {
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<8; i++) {
         //std::cout<<"Setting "<<i<<std::endl;
         if (lights[i]->on) {
             // load position
@@ -415,7 +415,7 @@ bool Program::setLights() {
             glUniform1f(lightPos[i].locs[8], lights[i]->spotExp);
         } else {
             //load off light
-            std::cout<<"offLight: "<<offLight.amb.x<<','<<offLight.amb.y<<','<<offLight.amb.z<<std::endl;
+            //std::cout<<"offLight: "<<offLight.amb.x<<','<<offLight.amb.y<<','<<offLight.amb.z<<std::endl;
             // load position
             glUniform4fv(lightPos[i].locs[0], 1, glm::value_ptr((*view) * (offLight.pos)));
 
