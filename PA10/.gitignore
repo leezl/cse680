@@ -1,2 +1,2 @@
-pa
-*.blend
+!*.obj
+!*.mtl

@@ -17,18 +17,18 @@ Objective:
    
 Description:   
 ----------------------------   
-There are spheres drawn for each of the lights, which have their normals flipped. This is so they show the lights inside them best, but it makes their shading look wrong. Ambient Lights do not have spheres drawn.  
-Initially:
-1 Point Light On and Active
-2 Ambient Light on 
-3 Spot Light on
-4 Distant Light on
-
-When first loaded the Point Light tied to 1 is active, so it will move with wasdWS. Each of 8 possible lights can be turned off and on with their numbers: 1,2,3,4 are on at the start. More controls are below.
+There are spheres drawn for each of the lights, which have their normals flipped. This is so they show the lights inside them best, but it makes their shading look wrong. Ambient Lights do not have spheres drawn.     
+Initially:   
+1 Point Light On and Active   
+2 Ambient Light on    
+3 Spot Light on   
+4 Distant Light on   
    
-Controls:   
+When first loaded the Point Light tied to 1 is active, so it will move with wasdWS. Each of 8 possible lights can be turned off and on with their numbers: 1,2,3,4 are on at the start. More controls are below.   
+    
+Controls:    
 ---------------------------------   
-  
+   
 * left arrow: camera gets closer to center    
 * right arrow: camera gets farther from center    
 * up arrow: raises camera    
@@ -61,6 +61,7 @@ The Following Controls the active Light:
 	-> q,e control the x spotlight direction   
 	-> z,c control the z spotlight direction   
 	-> Q,E control the spotlight exponent
+	-> x flips the y direction, because I was tired.
    
 
 Program Libraries Requirements
