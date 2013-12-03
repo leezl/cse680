@@ -1,3 +1,8 @@
+
+See Other Repo:
+
+git@bitbucket.org:khoat/cs680.git
+
 Project 10: Lighting
 ========================================
 

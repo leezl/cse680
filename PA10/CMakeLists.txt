@@ -19,9 +19,10 @@ set(PA_MODULE_PATH ${PA_MODULE_PATH} "${PA_SOURCE_DIR}/cmake/Modules/")
 #set (BULLET_SOURCE_DIR "/usr/include/bullet")
 #set (BULLET_SOURCE_DIR "/usr/local/include/bullet")
 #lab:
-SET( BULLET_ROOT "/home/lieslw/Projects/libraries/bullet-2.82-r2704")
-set (BULLET_BUILD_DIR "/home/lieslw/Projects/libraries/bullet-2.82-r2704/bulletBuild")
-set (BULLET_SOURCE_DIR "/usr/include/bullet")
+#SET( BULLET_ROOT "/home/lieslw/Projects/libraries/bullet-2.82-r2704")
+#set (BULLET_BUILD_DIR "/home/lieslw/Projects/libraries/bullet-2.82-r2704/bulletBuild")
+#set (BULLET_SOURCE_DIR "/usr/include/bullet")
+set (BULLET_SOURCE_DIR "/usr/local/include/bullet")
 
 #find libraries
 find_package(Assimp REQUIRED)
@@ -34,7 +35,7 @@ find_package(BULLET REQUIRED)
 
 include_directories(${IL_INCLUDE_DIR})
 include_directories(${BULLET_INCLUDE_DIR})
-message("bullets " ${BULLET_INCLUDE_DIR})
+#message("bullets " ${BULLET_INCLUDE_DIR})
 include_directories(${PA_SOURCE_DIR}/src)
 
 #message("Libs " ${BULLET_LIBRARIES})

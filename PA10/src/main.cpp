@@ -547,6 +547,52 @@ void mouseMove(int x, int y) {
 	glutPostRedisplay();
 }
 
+void menuSub(int id) {
+    switch(id)
+    {
+        //Pause or unpause
+        case 1:
+            //pauseFlag = -pauseFlag;
+			pauseFlag = pauseFlag == true? false:true;
+            break;
+        //2 Players or 1 Player
+        case 3:
+            playerMode = 2;
+            gameStatusUpdate = true;
+            break;
+        //Defensive AI
+        case 4:
+            gameMode = "Defensive";
+            playerMode = 1;
+            gameStatusUpdate = true;
+            break;      
+        //Offensive AI
+        case 5:
+            gameMode = "Offensive";
+            playerMode = 1;
+            gameStatusUpdate = true;
+            break;      
+        //Balanced AI
+        case 6:
+            gameMode = "Balanced";
+            playerMode = 1;
+            gameStatusUpdate = true;
+            break;  
+        case 7:
+            break;
+        case 8:
+            break;
+        //Restart
+        case 9:
+            break;
+        //Exit
+        case 0:
+            exit(0);
+            break;
+    }
+
+    glutPostRedisplay();
+}
 //----------------------------------------------------------------
 
 bool initialize() {
