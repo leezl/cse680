@@ -1,0 +1,42 @@
+# Blender MTL File: 'squareMaze1.blend'
+# Material Count: 4
+
+newmtl InnerWall
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.103935 0.640000 0.055918
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd shrub.jpg
+
+newmtl Material.001
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.377124 0.640000 0.582456
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd dirt.jpg
+
+newmtl OuterWall
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.147575 0.067327 0.011109
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd stonewall.jpg
+
+newmtl OuterWall_NONE
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.147575 0.067327 0.011109
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd stonewall.jpg

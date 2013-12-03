@@ -1,0 +1,14 @@
+# Blender MTL File: 'hockeyBoardStar.blend'
+# Material Count: 1
+
+newmtl walls
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.064062 0.000000 0.177102
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd stars.jpg
+map_Ke stars.jpg
+map_d stars.jpg

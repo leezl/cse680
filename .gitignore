@@ -16,8 +16,5 @@
 *~
 *.html
 PA
-*.obj
-*.mtl
-*.pdf
 *.ply
 pa7

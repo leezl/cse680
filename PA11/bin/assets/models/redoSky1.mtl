@@ -1,0 +1,62 @@
+# Blender MTL File: 'None'
+# Material Count: 6
+
+newmtl skybox_foresthills_back
+Ns 92.156863
+Ka 0.700000 0.700000 0.700000
+Kd 0.700000 0.700000 0.700000
+Ks 0.700000 0.700000 0.700000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd skybox_foresthills_back.jpg
+
+newmtl skybox_foresthills_bottom
+Ns 92.156863
+Ka 0.700000 0.700000 0.700000
+Kd 0.700000 0.700000 0.700000
+Ks 0.700000 0.700000 0.700000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd skybox_foresthills_bottom.jpg
+
+newmtl skybox_foresthills_front
+Ns 92.156863
+Ka 0.700000 0.700000 0.700000
+Kd 0.700000 0.700000 0.700000
+Ks 0.700000 0.700000 0.700000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd skybox_foresthills_front.jpg
+
+newmtl skybox_foresthills_left
+Ns 92.156863
+Ka 0.700000 0.700000 0.700000
+Kd 0.700000 0.700000 0.700000
+Ks 0.700000 0.700000 0.700000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd skybox_foresthills_left.jpg
+
+newmtl skybox_foresthills_right
+Ns 92.156863
+Ka 0.700000 0.700000 0.700000
+Kd 0.700000 0.700000 0.700000
+Ks 0.700000 0.700000 0.700000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd skybox_foresthills_right.jpg
+
+newmtl skybox_foresthills_top
+Ns 92.156863
+Ka 0.700000 0.700000 0.700000
+Kd 0.700000 0.700000 0.700000
+Ks 0.700000 0.700000 0.700000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd skybox_foresthills_top.jpg
