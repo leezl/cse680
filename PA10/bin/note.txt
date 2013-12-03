@@ -1,0 +1,1 @@
+There should be an object in the blue space, of a defualt grey color, or whatever color or texture was loaded.

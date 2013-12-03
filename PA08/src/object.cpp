@@ -257,7 +257,7 @@ void Object::updateModel() {
     //btTransform trans;
     //fallRigidBody->getMotionState()->getWorldTransform(trans);
     if (physics.objectRigidBody !=NULL && notStatic) {
-        btTransform transform;
+        /*btTransform transform;
         physics.objectRigidBody->getMotionState()->getWorldTransform(transform);
         btQuaternion rots = transform.getRotation();
         btVector3 trans = transform.getOrigin();
@@ -265,7 +265,15 @@ void Object::updateModel() {
         //this may be in the wrong order
         model = glm::rotate(glm::mat4(1.0f), rots.getAngle(), glm::vec3(rotAxis.getX(), rotAxis.getY(), rotAxis.getZ()));
         model = glm::translate(model, glm::vec3(trans.getX(), trans.getY(), trans.getZ()));
+        model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));*/
+        btTransform transform;
+        physics.objectRigidBody->getMotionState()->getWorldTransform(transform);
+        btScalar * hmm = new btScalar[16];
+        //float hmm[16] = {0.0};
+        transform.getOpenGLMatrix(hmm);
+        model = glm::make_mat4(hmm);
         model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));
+        delete hmm;
     } else if (physics.objectRigidBody !=NULL) {
         btTransform transform;
         physics.objectRigidBody->getMotionState()->getWorldTransform(transform);
@@ -461,9 +469,10 @@ bool Object::loadAssImp(std::string dir, std::string path){
     //load materials
     if (scene->HasMaterials()) {
         hasMaterials = true;
-        Material temp;
+        //Material temp;
         //iterate through materials
         for (unsigned int i = 0; i<scene->mNumMaterials; i++) {
+            Material temp;
             //store material properties: specular, diffuse, ambient, shine OR Default
             //check diffuse exists
             //std::cout<<"Has materials "<<std::endl;

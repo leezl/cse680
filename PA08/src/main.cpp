@@ -134,9 +134,9 @@ int main(int argc, char **argv) {
     //ilutRenderer(ILUT_OPENGL);
     glActiveTexture( GL_TEXTURE0 );//not sure where this needs to be...
     //whatIsIt = new Object(path+"/", filename);
-    board = new Object(path+"/", "assets/models/board.obj");
-    cube = new Object(path+"/", "assets/models/cube.obj");
-    cylinder = new Object(path+"/", "assets/models/cylinder.obj");
+    board = new Object(path+"/", "assets/models/hockeyBoardStar.obj");
+    cube = new Object(path+"/", "assets/models/paddle2Blue.obj");
+    cylinder = new Object(path+"/", "assets/models/moon.obj");
     sphere = new Object(path+"/", "assets/models/sphere.obj");
     //whatIsIt->flipNormals();
     if(file_exists_test("assets/models/sun.obj")) {
@@ -318,10 +318,10 @@ bool initialize() {
     sun->initializeObject();
 
     //physics init
-    board->setTransforms(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.0,1.0,1.0), dynamicWorld, "ground", "mesh");
-    cube->setTransforms(glm::vec3(0.0, 0.2, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "static", "convex");
-    sphere->setTransforms(glm::vec3(-1.0, 5.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "sphere");
-    cylinder->setTransforms(glm::vec3(0.0, 5.0, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
+    board->setTransforms(glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(1.5,1.5,1.5), dynamicWorld, "ground", "mesh");
+    cube->setTransforms(glm::vec3(0.0, -0.8, -1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.7,0.7,0.7), dynamicWorld, "static", "mesh");
+    sphere->setTransforms(glm::vec3(-1.2, 5.0, 0.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "sphere");
+    cylinder->setTransforms(glm::vec3(0.0, 5.0, -2.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.5,0.5,0.5), dynamicWorld, "dynamic", "convex");
     //decided to move the cube (pretending its a paddle)
     cubeTrans = cube->translate;
 

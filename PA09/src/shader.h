@@ -1,0 +1,43 @@
+/*
+
+Project 03, Graphics
+Copyright 2013, Liesl Wigand
+
+Shader class header:
+    loads, and initializes the shaders
+
+*/
+// Needs glew, glut, glm? Just gl.h? order will matter in main
+#include <GL/glew.h>  // glew must be included before the main gl libs
+#include <GL/glut.h>  // doing otherwise causes compiler shouting
+#include <string>
+// #include <GL/gl.h> // not needed now
+
+#ifndef SHADER_H_
+#define SHADER_H_
+
+class Shader {
+  private:
+    // handle GLuint
+    GLenum kind;
+    GLuint handle;
+
+    // load from file
+    char* loadShader(std::string filename);
+    // compile
+    void compile(const char *shad);
+    // create
+    void createShader(GLenum shaderType, const char *shad);
+
+  public:
+    // constructor(s)
+    explicit Shader(GLenum shaderType);
+    Shader(GLenum shaderType, std::string);//char* filename);
+    void deleteShader();
+    ~Shader();
+    // added function to move possible errors
+    // from constructor to other...exceptions wouldve worked too.
+    GLuint get() const;
+};
+
+#endif  // SHADER_H_
